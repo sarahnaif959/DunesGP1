@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>عارض الصور مع التقييم والملاحظات</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        }
+        
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #e71396, #0ea5e9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+        
+        .page {
+            width: 100%;
+            max-width: 900px;
+            background: #ffffff;
+            border-radius: 26px;
+            box-shadow: 0 25px 45px rgba(15, 23, 42, 0.35);
+            padding: 26px 26px 24px;
+        }
+        
+        .title {
+            text-align: center;
+            font-size: 26px;
+            margin: 0;
+            color: #111827;
+            font-weight: 800;
+        }
+        
+        .subtitle {
+            text-align: center;
+            margin-top: 6px;
+            margin-bottom: 14px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .badges-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .badge span.count {
+            font-weight: 700;
+        }
+        
+        .image-wrapper {
+            width: 100%;
+            background: #f3f4f6;
+            border-radius: 18px;
+            border: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 12px;
+            gap: 12px;
+        }
+        
+        .image-wrapper img {
+            max-width: 48%;
+            max-height: 380px;
+            border-radius: 12px;
+            object-fit: contain;
+        }
+        
+        .yn-buttons {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        
+        .yn-buttons button {
+            padding: 10px 26px;
+            font-size: 18px;
+            font-weight: 700;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            margin: 0 8px;
+            color: #ffffff;
+            transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.1s ease;
+        }
+        
+        .yn-yes {
+            background: #22c55e;
+        }
+        
+        .yn-no {
+            background: #ef4444;
+        }
+        
+        .yn-buttons button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.25);
+        }
+        
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        
+        .nav-buttons button {
+            flex: 1;
+            padding: 11px 0;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            background: #2563eb;
+            color: #ffffff;
+            transition: background 0.15s ease, transform 0.1s ease;
+        }
+        
+        .nav-buttons button:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+        
+        .nav-buttons button:disabled {
+            background: #e5e7eb;
+            color: #9ca3af;
+            cursor: default;
+            transform: none;
+        }
+        
+        .notes-section {
+            border-top: 1px solid #e5e7eb;
+            padding-top: 12px;
+            margin-top: 4px;
+        }
+        
+        .notes-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+        
+        textarea {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid #d1d5db;
+            padding: 8px 10px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 1px #2563eb33;
+        }
+        
+        .notes-footer {
+            margin-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        #save-note-btn {
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: none;
+            background: #10b981;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        
+        #save-note-btn:hover {
+            background: #059669;
+        }
+        
+
+        .save-status {
+            font-size: 12px;
+            color: #16a34a;
+        }
+        
+        .small-hint {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+            text-align: center;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="page">
+        <h1 class="title">هل تصنيف وتحديدالكثبان الهلالية في هذه الصورة دقسق ؟اذل وجدت أخطاء يرجى توضيحها </h1>
+        <div class="subtitle">
+            الصورة <span id="current-index">1</span> من <span id="total-count">150</span>
+        </div>
+
+        <div class="badges-row">
+            <div class="badge" style="background:#dcfce7;color:#166534;">
+                ✓ نعم: <span id="yes-count" class="count">0</span>
+            </div>
+            <div class="badge" style="background:#fee2e2;color:#b91c1c;">
+                ✗ لا: <span id="no-count" class="count">0</span>
+            </div>
+            <div class="badge" style="background:#e5e7eb;color:#374151;">
+                ⏳ لم تُقيّم بعد: <span id="pending-count" class="count">150</span>
+            </div>
+        </div>
+
+        <!-- خانتين للصورة (من فولدرين مختلفين) -->
+        <div class="image-wrapper">
+            <img id="main-image-1" src="" alt="الصورة الحالية - 1" />
+            <img id="main-image-2" src="" alt="الصورة الحالية - 2" />
+        </div>
+
+        <!-- أزرار نعم / لا -->
+        <div class="yn-buttons">
+            <button id="yes-btn" class="yn-yes">نعم ✓</button>
+            <button id="no-btn" class="yn-no">لا ✗</button>
+        </div>
+
+        <!-- السابق / التالي -->
+        <div class="nav-buttons">
+            <button id="prev-btn">السابق</button>
+            <button id="next-btn">التالي</button>
+        </div>
+
+        <div class="notes-section">
+            <label class="notes-label">📝 ملاحظاتك على الصورة:</label>
+            <textarea id="note" placeholder="اكتبي ملاحظتك هنا..."></textarea>
+
+
+        </div>
+        <div class="notes-footer">
+        <button id="save-note-btn">حفظ الملاحظة</button>
+        <span id="save-status" class="save-status"></span>
+        </div>
+
+
+    </div>
+
+   <script>
+    /* ========= الإعداد الأساسي ========= */
+
+    const TOTAL_IMAGES = 150;
+    const FOLDER1 = "Export (Screenshot)";
+    const FOLDER2 = "Images";
+
+    function getFileName(index) {
+        const num = String(index + 1).padStart(3, "0");
+        return `dune_${num}.jpg`;
+    }
+
+    function getImagePath1(index) {
+        return `${FOLDER1}/${getFileName(index)}`;
+    }
+
+    function getImagePath2(index) {
+        return `${FOLDER2}/${getFileName(index)}`;
+    }
+
+    const imgElement1 = document.getElementById("main-image-1");
+    const imgElement2 = document.getElementById("main-image-2");
+    const currentIndexSpan = document.getElementById("current-index");
+    const totalCountSpan = document.getElementById("total-count");
+    const prevBtn = document.getElementById("prev-btn");
+    const nextBtn = document.getElementById("next-btn");
+    const yesBtn = document.getElementById("yes-btn");
+    const noBtn = document.getElementById("no-btn");
+    const noteTextarea = document.getElementById("note");
+    const saveNoteBtn = document.getElementById("save-note-btn");
+    const saveStatus = document.getElementById("save-status");
+    const yesCountSpan = document.getElementById("yes-count");
+    const noCountSpan = document.getElementById("no-count");
+    const pendingCountSpan = document.getElementById("pending-count");
+
+    const labels = new Array(TOTAL_IMAGES).fill(null);
+    const notes = new Array(TOTAL_IMAGES).fill("");
+
+    let currentIndex = 0;
+
+    async function syncCurrentToServer() {
+        const index = currentIndex + 1;
+        const fileName = getFileName(currentIndex);
+        const file1 = `${FOLDER1}/${fileName}`;
+        const file2 = `${FOLDER2}/${fileName}`;
+        const label = labels[currentIndex] || "";
+        const note = notes[currentIndex] || "";
+
+        try {
+            await fetch("/api/review", {   // 🔹 or "http://localhost:5000/api/review"
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ index, file1, file2, label, note }),
+            });
+        } catch (err) {
+            console.error("Failed to sync with server:", err);
+        }
+    }
+
+    function updateStats() {
+        let yesCount = 0;
+        let noCount = 0;
+
+        for (let i = 0; i < TOTAL_IMAGES; i++) {
+            if (labels[i] === "yes") yesCount++;
+            else if (labels[i] === "no") noCount++;
+        }
+
+        const pendingCount = TOTAL_IMAGES - yesCount - noCount;
+
+        yesCountSpan.textContent = yesCount;
+        noCountSpan.textContent = noCount;
+        pendingCountSpan.textContent = pendingCount;
+    }
+
+    function updateYNButtons() {
+        const value = labels[currentIndex];
+
+        if (value === "yes") {
+            yesBtn.style.background = "#16a34a";
+            noBtn.style.background = "#ef4444";
+        } else if (value === "no") {
+            noBtn.style.background = "#b91c1c";
+            yesBtn.style.background = "#22c55e";
+        } else {
+            yesBtn.style.background = "#22c55e";
+            noBtn.style.background = "#ef4444";
+        }
+    }
+
+    function updateView() {
+        imgElement1.src = getImagePath1(currentIndex);
+        imgElement2.src = getImagePath2(currentIndex);
+
+        currentIndexSpan.textContent = (currentIndex + 1).toString();
+        totalCountSpan.textContent = TOTAL_IMAGES.toString();
+
+        noteTextarea.value = notes[currentIndex] || "";
+
+        prevBtn.disabled = currentIndex === 0;
+        nextBtn.disabled = currentIndex === TOTAL_IMAGES - 1;
+
+        updateYNButtons();
+        updateStats();
+        saveStatus.textContent = "";
+    }
+
+    prevBtn.onclick = () => {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updateView();
+        }
+    };
+
+    nextBtn.onclick = () => {
+        if (currentIndex < TOTAL_IMAGES - 1) {
+            currentIndex++;
+            updateView();
+        }
+    };
+
+    yesBtn.onclick = () => {
+        labels[currentIndex] = "yes";
+        updateYNButtons();
+        updateStats();
+        syncCurrentToServer();    // 🔹
+    };
+
+    noBtn.onclick = () => {
+        labels[currentIndex] = "no";
+        updateYNButtons();
+        updateStats();
+        syncCurrentToServer();    // 🔹
+    };
+
+    saveNoteBtn.onclick = () => {
+        notes[currentIndex] = noteTextarea.value;
+        saveStatus.textContent = "✔️ تم حفظ الملاحظة لهذه الصورة";
+        setTimeout(() => (saveStatus.textContent = ""), 2000);
+        syncCurrentToServer();    // 🔹
+    };
+    exportBtn.onclick = () => {
+    const lines = [];
+    lines.push("index,file1,file2,label,note");
+
+    for (let i = 0; i < TOTAL_IMAGES; i++) {
+        const index = i + 1;
+        const fileName = getFileName(i);
+        const file1 = `${FOLDER1}/${fileName}`;
+        const file2 = `${FOLDER2}/${fileName}`;
+
+        let label = "";
+        if (labels[i] === "yes") label = "yes";
+        else if (labels[i] === "no") label = "no";
+
+        const rawNote = notes[i] || "";
+        const safeNote = rawNote.replace(/"/g, '""');
+
+        const line = `${index},"${file1}","${file2}","${label}","${safeNote}"`;
+        lines.push(line);
+    }
+
+    const csvContent = lines.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "dune_review_results.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+};
+
+    updateView();
+</script>
+
+</body>
+
+</html>
