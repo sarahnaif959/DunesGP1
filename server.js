@@ -1,7 +1,8 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-require('dotenv').config();
+const path = require("path");
+require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -11,19 +12,24 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public")); // serves index.html, images, etc.
 
+// Optional but explicit:
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
 // ======== MONGODB CONNECTION ========
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch(err => console.error('❌ MongoDB error:', err));
-  console.log('MONGODB_URI from .env:', process.env.MONGODB_URI);
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch((err) => console.error("❌ MongoDB error:", err));
 
 // ======== SCHEMA ========
 const reviewSchema = new mongoose.Schema({
-  index: Number,       // 1..150
-  file1: String,       // Export (Screenshot)/dune_001.jpg
-  file2: String,       // Images/dune_001.jpg
-  label: String,       // "yes" / "no" / ""
-  note: String,        // user note
+  index: Number,
+  file1: String,
+  file2: String,
+  label: String,
+  note: String,
   createdAt: { type: Date, default: Date.now },
 });
 
@@ -34,7 +40,6 @@ app.post("/api/review", async (req, res) => {
   try {
     const { index, file1, file2, label, note } = req.body;
 
-    // upsert = update if exists, otherwise create
     const doc = await Review.findOneAndUpdate(
       { index },
       { file1, file2, label, note },
