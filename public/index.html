@@ -494,8 +494,7 @@
     <script>
         /* ========= الإعداد الأساسي ========= */
 
-        const API_BASE = "https://dunes-v1.onrender.com"; // Render backend base URL
-
+const API_BASE = "/.netlify/functions/review"; // Netlify Function URL
         const TOTAL_IMAGES = 150;
         const FOLDER1 = "Export (Screenshot)";
         const FOLDER2 = "Images";
@@ -585,11 +584,11 @@
     const note = notes[currentIndex] || "";
 
     try {
-        await fetch(`${API_BASE}/api/review`, { // استخدم رابط الخادم الكامل
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ index, file1, file2, label, note }),
-        });
+       await fetch(API_BASE, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ index, file1, file2, label, note }),
+});
     } catch (err) {
         console.error("Failed to sync with server:", err);
     }
