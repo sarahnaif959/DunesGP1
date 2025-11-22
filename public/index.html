@@ -584,11 +584,11 @@ async function syncCurrentToServer() {
     const note = notes[currentIndex] || "";
 
     try {
-        await fetch(API_BASE, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ index, file1, file2, label, note }),
-        });
+     await fetch("/.netlify/functions/review", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ index, file1, file2, label, note })
+});
     } catch (err) {
         console.error("Failed to sync with server:", err);
     }

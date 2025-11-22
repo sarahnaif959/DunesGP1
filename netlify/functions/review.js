@@ -14,7 +14,15 @@ const reviewSchema = new mongoose.Schema({
 });
 
 async function connect() {
+  // 1) تأكد إن الـ URI موجود
+  if (!process.env.MONGODB_URI) {
+    console.error("❌ MONGODB_URI is NOT defined in Netlify env");
+    throw new Error("MONGODB_URI is not set");
+  }
+
   if (conn) return conn;
+
+  console.log("🔌 Connecting to Mongo…");
 
   conn = await mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
@@ -27,12 +35,16 @@ async function connect() {
 }
 
 exports.handler = async (event) => {
+  console.log("➡️ Function /review called with method:", event.httpMethod);
+
   try {
     await connect();
 
     if (event.httpMethod === "POST") {
       const body = JSON.parse(event.body || "{}");
       const { index, file1, file2, label, note } = body;
+
+      console.log("📩 Saving review:", { index, file1, file2, label, note });
 
       const doc = await Review.findOneAndUpdate(
         { index },
@@ -57,6 +69,9 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: "Method Not Allowed" };
   } catch (err) {
     console.error("❌ Netlify function error:", err);
-    return { statusCode: 500, body: err.toString() };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ success: false, error: err.message }),
+    };
   }
 };
