@@ -9,11 +9,19 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "mongoose": "^9.0.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sarahnaif959/DunesGP1.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sarahnaif959/DunesGP1/issues"
+  },
+  "homepage": "https://github.com/sarahnaif959/DunesGP1#readme",
+  "description": ""
 }
