@@ -1,77 +1,86 @@
-const mongoose = require("mongoose");
+// netlify/functions/review.js
+const { MongoClient } = require("mongodb");
 
-let conn = null;
-let Review;
+const uri = process.env.MONGODB_URI;
 
-const reviewSchema = new mongoose.Schema({
-  index: { type: Number, unique: true },
-  file1: String,
-  file2: String,
-  label: String,
-  note: String,
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: Date,
-});
+// نخلي الـ client ثابت عشان ما نفتح اتصال جديد كل مرة
+let client;
+let collection;
 
-async function connect() {
-  // 1) تأكد إن الـ URI موجود
-  if (!process.env.MONGODB_URI) {
-    console.error("❌ MONGODB_URI is NOT defined in Netlify env");
-    throw new Error("MONGODB_URI is not set");
+async function getCollection() {
+  if (!client) {
+    client = new MongoClient(uri);
+    await client.connect();
+
+    // هنا اسم الداتا بيس والـ collection
+    const db = client.db("EducationApp");       // تقدرين تغيرينه إذا اسم DB غير
+    collection = db.collection("reviews");      // اسم الـ collection اللي تبين تخزين فيه
   }
-
-  if (conn) return conn;
-
-  console.log("🔌 Connecting to Mongo…");
-
-  conn = await mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-
-  Review = mongoose.models.Review || mongoose.model("Review", reviewSchema);
-  console.log("✅ Mongo connected (Netlify)");
-  return conn;
+  return collection;
 }
 
 exports.handler = async (event) => {
-  console.log("➡️ Function /review called with method:", event.httpMethod);
+  // CORS للـ OPTIONS (preflight)
+  if (event.httpMethod === "OPTIONS") {
+    return {
+      statusCode: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST,OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
+      body: "",
+    };
+  }
+
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: "Method Not Allowed",
+    };
+  }
 
   try {
-    await connect();
+    const data = JSON.parse(event.body || "{}");
+    const { index, file1, file2, label, note } = data;
 
-    if (event.httpMethod === "POST") {
-      const body = JSON.parse(event.body || "{}");
-      const { index, file1, file2, label, note } = body;
+    const col = await getCollection();
 
-      console.log("📩 Saving review:", { index, file1, file2, label, note });
+    // upsert على حسب الـ index
+    await col.updateOne(
+      { index },
+      {
+        $set: {
+          index,
+          file1,
+          file2,
+          label,
+          note,
+          updatedAt: new Date(),
+        },
+      },
+      { upsert: true }
+    );
 
-      const doc = await Review.findOneAndUpdate(
-        { index },
-        { file1, file2, label, note, updatedAt: new Date() },
-        { upsert: true, new: true }
-      );
-
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ success: true, data: doc }),
-      };
-    }
-
-    if (event.httpMethod === "GET") {
-      const docs = await Review.find().sort({ index: 1 });
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ success: true, data: docs }),
-      };
-    }
-
-    return { statusCode: 405, body: "Method Not Allowed" };
+    return {
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify({ ok: true }),
+    };
   } catch (err) {
-    console.error("❌ Netlify function error:", err);
+    console.error("Netlify function error:", err);
+
     return {
       statusCode: 500,
-      body: JSON.stringify({ success: false, error: err.message }),
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify({ ok: false, error: err.message }),
     };
   }
 };
