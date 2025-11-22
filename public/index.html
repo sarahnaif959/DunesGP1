@@ -494,6 +494,8 @@
     <script>
         /* ========= الإعداد الأساسي ========= */
 
+        const API_BASE = "https://dunes-v1.onrender.com"; // Render backend base URL
+
         const TOTAL_IMAGES = 150;
         const FOLDER1 = "Export (Screenshot)";
         const FOLDER2 = "Images";
@@ -574,24 +576,24 @@
 
         /* ========= تزامن مع السيرفر ========= */
 
-        async function syncCurrentToServer() {
-            const index = currentIndex + 1;
-            const fileName = getFileName(currentIndex);
-            const file1 = `${FOLDER1}/${fileName}`;
-            const file2 = `${FOLDER2}/${fileName}`;
-            const label = labels[currentIndex] || "";
-            const note = notes[currentIndex] || "";
+       async function syncCurrentToServer() {
+    const index = currentIndex + 1;
+    const fileName = getFileName(currentIndex);
+    const file1 = `${FOLDER1}/${fileName}`;
+    const file2 = `${FOLDER2}/${fileName}`;
+    const label = labels[currentIndex] || "";
+    const note = notes[currentIndex] || "";
 
-            try {
-                await fetch("/api/review", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ index, file1, file2, label, note }),
-                });
-            } catch (err) {
-                console.error("Failed to sync with server:", err);
-            }
-        }
+    try {
+        await fetch(`${API_BASE}/api/review`, { // استخدم رابط الخادم الكامل
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ index, file1, file2, label, note }),
+        });
+    } catch (err) {
+        console.error("Failed to sync with server:", err);
+    }
+}
 
         /* ========= الإحصائيات ========= */
 
