@@ -72,7 +72,7 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // أي method ثانية مو مسموحة
+    // أي method ثانية مو  -مسموحة
     return {
       statusCode: 405,
       body: JSON.stringify({ success: false, error: "Method Not Allowed" }),
