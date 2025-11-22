@@ -18,8 +18,10 @@ app.get("/", (req, res) => {
 });
 
 // ======== MONGODB CONNECTION ========
-mongoose
-  .connect(process.env.MONGODB_URI)
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.error("❌ MongoDB error:", err));
 
@@ -35,21 +37,34 @@ const reviewSchema = new mongoose.Schema({
 
 const Review = mongoose.model("Review", reviewSchema);
 
-// ======== API: SAVE REVIEW FOR ONE IMAGE ========
+// ======== API: SAVE REVIEW WITH DEBUGGING ========
 app.post("/api/review", async (req, res) => {
+  console.log("📩 Request received at /api/review");
+  console.log("📝 Body:", req.body);
+
   try {
     const { index, file1, file2, label, note } = req.body;
 
+    if (index === undefined) {
+      console.log("❌ Missing index");
+      return res.status(400).json({ success: false, error: "Missing index" });
+    }
+
+    console.log(`🔍 Updating review for index: ${index}`);
+
     const doc = await Review.findOneAndUpdate(
       { index },
-      { file1, file2, label, note },
+      { file1, file2, label, note, updatedAt: new Date() },
       { upsert: true, new: true }
     );
 
+    console.log("✅ Saved/Updated document:", doc);
+
     res.json({ success: true, data: doc });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, error: "Server error" });
+    console.error("❌ ERROR saving review:", err);
+    res.status(500).json({ success: false, error: "Server error", details: err.message });
   }
 });
 
