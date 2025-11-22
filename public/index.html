@@ -14,11 +14,12 @@
         body {
             margin: 0;
             min-height: 100vh;
-            background: linear-gradient(135deg, #e71396, #0ea5e9);
+            background: linear-gradient(135deg, #C1724F 0%, #D9A47A 50%, #F0E5D3 100%);
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 16px;
+            
         }
         
         .page {
@@ -218,6 +219,169 @@
             margin-top: 4px;
             text-align: center;
         }
+        .extra-note-box {
+    position: fixed;
+    right: 10px;
+    top: 20px;
+    width: 220px;
+    background: #ffffffdd;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    z-index: 9999;
+}
+
+.extra-note-box textarea {
+    width: 100%;
+    height: 90px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    padding: 6px 8px;
+    font-size: 13px;
+    resize: vertical;
+} 
+
+
+.steps-container {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+    border: 2px solid #e5e7eb;
+}
+
+.steps-title {
+text-align: center;
+font-size: 15px;
+font-weight: 700;
+color: #374151;
+margin: 0 0 16px 0;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+}
+
+.steps-wrapper {
+display: flex;
+justify-content: space-between;
+align-items: center;
+position: relative;
+}
+
+.step {
+flex: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 8px;
+position: relative;
+z-index: 2;
+}
+
+.step-circle {
+width: 48px;
+height: 48px;
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 20px;
+font-weight: 700;
+transition: all 0.3s ease;
+border: 3px solid #d1d5db;
+background: #ffffff;
+color: #9ca3af;
+box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.step.active .step-circle {
+background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+color: #ffffff;
+border-color: #2563eb;
+transform: scale(1.1);
+box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+animation: pulse 2s infinite;
+}
+
+.step.completed .step-circle {
+background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+color: #ffffff;
+border-color: #10b981;
+}
+
+@keyframes pulse {
+1000%, 100% { box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); }
+10150% { box-shadow: 0 4px 20px rgba(37, 99, 235, 0.6); }
+}
+
+.step-label {
+font-size: 13px;
+font-weight: 600;
+color: #6b7280;
+text-align: center;
+transition: color 0.3s ease;
+}
+
+.step.active .step-label {
+color: #2563eb;
+font-weight: 700;
+}
+
+.step.completed .step-label {
+color: #10b981;
+}
+
+.step-line {
+position: absolute;
+top: 24px;
+left: 12.5%;
+right: 12.5%;
+height: 3px;
+background: #e5e7eb;
+z-index: 1;
+}
+
+.step-line-progress {
+position: absolute;
+top: 24px;
+left: 12.5%;
+height: 3px;
+background: linear-gradient(90deg, #10b981 0%, #2563eb 100%);
+transition: width 0.5s ease;
+z-index: 1;
+}
+
+.quick-tips {
+margin-top: 16px;
+padding: 12px;
+background: #fff7ed;
+border-right: 4px solid #f59e0b;
+border-radius: 8px;
+}
+
+.quick-tips-title {
+font-size: 13px;
+font-weight: 700;
+color: #92400e;
+margin: 0 0 6px 0;
+display: flex;
+align-items: center;
+gap: 6px;
+}
+
+.quick-tips ul {
+margin: 0;
+padding-right: 18px;
+}
+
+.quick-tips li {
+font-size: 12px;
+color: #78350f;
+line-height: 1.6;
+}
+        
     </style>
 
 </head>
@@ -225,10 +389,48 @@
 <body>
 
     <div class="page">
-        <h1 class="title">هل تصنيف وتحديدالكثبان الهلالية في هذه الصورة دقسق ؟اذل وجدت أخطاء يرجى توضيحها </h1>
+        <h1 class="title">هل تحديد الكثبان الهلالية في هذه الصورة دقيق ؟ </h1>
         <div class="subtitle">
             الصورة <span id="current-index">1</span> من <span id="total-count">150</span>
         </div>
+        <div class="steps-container">
+<div class="steps-title">
+<span>🎯</span>
+<span>خطوات التقييم</span>
+</div>
+<div class="steps-wrapper">
+<div class="step-line"></div>
+<div class="step-line-progress" id="progress-line"></div>
+<div class="step" id="step-1">
+<div class="step-circle">👀</div>
+<div class="step-label">شاهد الصورتين</div>
+</div>
+<div class="step" id="step-2">
+<div class="step-circle">✓</div>
+<div class="step-label">اختر نعم أو لا</div>
+</div>
+<div class="step" id="step-3">
+<div class="step-circle">✍️</div>
+<div class="step-label">أضف ملاحظة</div>
+</div>
+<div class="step" id="step-4">
+<div class="step-circle">💾</div>
+<div class="step-label">احفظ وانتقل</div>
+</div>
+</div>
+<div class="quick-tips">
+<div class="quick-tips-title">
+<span>💡</span>
+<span>نصائح سريعة</span>
+</div>
+<ul>
+<li>قارن بين الصورتين بعناية</li>
+<li>اضغط نعم ✓ إذا كان التحديد صحيح، أو لا ✗ إذا كان خاطئ</li>
+<li>أضف ملاحظتك إذا وجدت خطأ (اختياري)</li>
+<li>اضغط "حفظ الملاحظة" ثم "التالي" للانتقال</li>
+</ul>
+</div>
+</div>
 
         <div class="badges-row">
             <div class="badge" style="background:#dcfce7;color:#166534;">
@@ -261,7 +463,7 @@
         </div>
 
         <div class="notes-section">
-            <label class="notes-label">📝 ملاحظاتك على الصورة:</label>
+        <label class="notes-label">📝 ملاحظاتك على الصورة: (اذا وجدتِ خطأ الرجاء توضيحها)</label>
             <textarea id="note" placeholder="اكتبي ملاحظتك هنا..."></textarea>
 
 
@@ -270,6 +472,12 @@
         <button id="save-note-btn">حفظ الملاحظة</button>
         <span id="save-status" class="save-status"></span>
         </div>
+
+        <div class="extra-note-box">
+    <label style="font-size:14px;font-weight:600;color:#374151;">
+        انتظر من دقيقه الى دقيتين حتى تنتهى تحميل الصوره 
+    </label>
+</div>
 
 
     </div>
@@ -294,6 +502,12 @@
         return `${FOLDER2}/${getFileName(index)}`;
     }
 
+// عناصر الخطوات
+const step1 = document.getElementById("step-1");
+const step2 = document.getElementById("step-2");
+const step3 = document.getElementById("step-3");
+const step4 = document.getElementById("step-4");
+const progressLine = document.getElementById("progress-line");
     const imgElement1 = document.getElementById("main-image-1");
     const imgElement2 = document.getElementById("main-image-2");
     const currentIndexSpan = document.getElementById("current-index");
@@ -313,6 +527,93 @@
     const notes = new Array(TOTAL_IMAGES).fill("");
 
     let currentIndex = 0;
+    let currentStep = 1;
+    let yesCount = 0;
+    let  noCount = 0;
+
+    // ========= تحديث الخطوات =========
+function updateSteps(step) {
+currentStep = step;
+// إزالة جميع الحالات
+[step1, step2, step3, step4].forEach(s => {
+s.classList.remove('active', 'completed');
+});
+
+// تحديد الخطوة النشطة والمكتملة
+if (step >= 1) step1.classList.add('completed');
+if (step >= 2) step2.classList.add('completed');
+if (step >= 3) step3.classList.add('completed');
+if (step >= 4) step4.classList.add('completed');
+if (step === 1) step1.classList.add('active');
+if (step === 2) step2.classList.add('active');
+if (step === 3) step3.classList.add('active');
+if (step === 4) step4.classList.add('active');
+// تحديث خط التقدم
+const progress = ((step - 1) / 3) * 75;
+progressLine.style.width = `${progress}%`;
+}
+
+// أزرار نعم / لا
+yesBtn.onclick = () => {
+yesBtn.style.background = "#16a34a";
+noBtn.style.background = "#ef4444";
+   yesCount++;
+   yesCountSpan.textContent = yesCount;
+   pendingCountSpan.textContent = 150 - yesCount - noCount;
+updateSteps(2);
+};
+
+noBtn.onclick = () => {
+noBtn.style.background = "#b91c1c";
+yesBtn.style.background = "#22c55e";
+noCount++;
+noCountSpan.textContent = noCount;
+pendingCountSpan.textContent = 150 - yesCount - noCount;
+updateSteps(2);
+};
+
+// كتابة الملاحظة
+noteTextarea.oninput = () => {
+if (noteTextarea.value.trim() && currentStep >= 2) {
+updateSteps(3);
+}
+};
+
+// حفظ الملاحظة
+saveNoteBtn.onclick = () => {
+saveStatus.textContent = "✔️ تم حفظ الملاحظة لهذه الصورة";
+setTimeout(() => (saveStatus.textContent = ""), 2000);
+updateSteps(4);
+};
+
+// زر التالي
+nextBtn.onclick = () => {
+if (currentIndex < 150) {
+currentIndex++;
+currentIndexSpan.textContent = currentIndex;
+prevBtn.disabled = false;
+if (currentIndex === 150) nextBtn.disabled = true;
+// إعادة تعيين الخطوات
+updateSteps(1);
+yesBtn.style.background = "#22c55e";
+noBtn.style.background = "#ef4444";
+noteTextarea.value = "";
+saveStatus.textContent = "";
+}
+};
+
+// زر السابق
+prevBtn.onclick = () => {
+if (currentIndex > 1) {
+currentIndex--;
+currentIndexSpan.textContent = currentIndex;
+nextBtn.disabled = false;
+if (currentIndex === 1) prevBtn.disabled = true;
+updateSteps(1);
+}
+};
+
+
 
     async function syncCurrentToServer() {
         const index = currentIndex + 1;
