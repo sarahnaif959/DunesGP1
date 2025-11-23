@@ -695,32 +695,40 @@
 
         /* ========= حفظ البيانات في Firestore ========= */
         async function syncCurrentToServer() {
-            const index = currentIndex + 1;
-            const fileName = getFileName(currentIndex);
-            const file1 = `${FOLDER1}/${fileName}`;
-            const file2 = `${FOLDER2}/${fileName}`;
-            const label = labels[currentIndex] || "";
-            const note = notes[currentIndex] || "";
+         const index = currentIndex + 1;
+         const fileName = getFileName(currentIndex);
+         const file1 = `${FOLDER1}/${fileName}`;
+         const file2 = `${FOLDER2}/${fileName}`;
+         const label = labels[currentIndex] || "";
+         const note = notes[currentIndex] || "";
 
-            try {
-                await setDoc(
-                    doc(db, "reviews", String(index)),
-                    {
-                        index,
-                        file1,
-                        file2,
-                        label,
-                        note,
-                        reviewerName: reviewerName || "",
-                        isGeologist: !!isGeologist,
-                        updatedAt: serverTimestamp()
-                    },
-                    { merge: true }
-                );
-            } catch (err) {
-                console.error("Failed to sync with Firestore:", err);
-            }
-        }
+        // نكوّن "هوية" للمقيّم من الاسم
+         const reviewerId = (reviewerName || "anonymous")
+         .trim()
+         .replace(/\s+/g, "_"); // نحول المسافات إلى _ عشان ما تخرب الـ id
+
+         // نخلي رقم الوثيقة مكوّن من اسم المقيّم + رقم الصورة
+         const docId = `${reviewerId}_${index}`;
+
+         try {
+          await setDoc(
+          doc(db, "reviews", docId),
+            {
+                index,                // رقم الصورة
+                file1,
+                file2,
+                label,
+                note,
+                reviewerName: reviewerName || "",
+                isGeologist: !!isGeologist,
+                updatedAt: serverTimestamp()
+            },
+            { merge: true }
+        );
+         } catch (err) {
+        console.error("Failed to sync with Firestore:", err);
+       }
+     }
 
         /* ========= الإحصائيات ========= */
 
