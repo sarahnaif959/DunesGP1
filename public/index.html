@@ -386,6 +386,57 @@
             color: #78350f;
             line-height: 1.6;
         }
+
+        /* ====== بيانات المقيّم ====== */
+
+        .user-info {
+            margin-bottom: 18px;
+            padding: 12px 14px;
+            background: #f9fafb;
+            border-radius: 14px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .user-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        .user-info input[type="text"] {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 10px;
+            border: 1px solid #d1d5db;
+            font-size: 14px;
+        }
+
+        .user-info input[type="text"]:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 1px #2563eb33;
+        }
+
+        .user-agree {
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            font-size: 13px;
+            color: #4b5563;
+            margin-top: 10px;
+        }
+
+        .user-agree input[type="checkbox"] {
+            margin-top: 3px;
+        }
+
+        .user-warning {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #b91c1c;
+        }
     </style>
 
 </head>
@@ -393,6 +444,24 @@
 <body>
 
     <div class="page">
+
+        <!-- بيانات المقيّم -->
+        <div class="user-info">
+            <label class="user-label" for="reviewer-name">👤 اسمك الكامل:</label>
+            <input
+                id="reviewer-name"
+                type="text"
+                placeholder="اكتبي اسمك هنا..."
+            />
+
+            <label class="user-agree">
+                <input type="checkbox" id="geo-confirm" />
+                أقرّ بأنني متخصصة / دكتورة / باحثة في الجيولوجيا أو في مجال قريب مناسب لتقييم هذه الصور.
+            </label>
+
+            <div id="user-warning" class="user-warning"></div>
+        </div>
+
         <h1 class="title">هل تحديد الكثبان الهلالية في هذه الصورة دقيق ؟ </h1>
         <div class="subtitle">
             الصورة <span id="current-index">1</span> من <span id="total-count">150</span>
@@ -556,11 +625,45 @@
         const noCountSpan = document.getElementById("no-count");
         const pendingCountSpan = document.getElementById("pending-count");
 
+        const reviewerNameInput = document.getElementById("reviewer-name");
+        const geoConfirmCheckbox = document.getElementById("geo-confirm");
+        const userWarning = document.getElementById("user-warning");
+
         const labels = new Array(TOTAL_IMAGES).fill(null); // "yes" / "no" / null
         const notes = new Array(TOTAL_IMAGES).fill("");
 
         let currentIndex = 0;   // 0-based
         let currentStep = 1;    // 1..4
+        let reviewerName = "";
+        let isGeologist = false;
+
+        /* ========= تحقق من بيانات المقيّم ========= */
+
+        function validateUserInfo() {
+            reviewerName = (reviewerNameInput.value || "").trim();
+            isGeologist = geoConfirmCheckbox.checked;
+
+            if (!reviewerName) {
+                userWarning.textContent = "رجاءً اكتبي اسمك أولاً قبل بدء التقييم.";
+                return false;
+            }
+
+            if (!isGeologist) {
+                userWarning.textContent = "يجب الإقرار بأنك متخصصة في الجيولوجيا أو مجال قريب قبل التقييم.";
+                return false;
+            }
+
+            userWarning.textContent = "";
+            return true;
+        }
+
+        reviewerNameInput.addEventListener("input", () => {
+            userWarning.textContent = "";
+        });
+
+        geoConfirmCheckbox.addEventListener("change", () => {
+            userWarning.textContent = "";
+        });
 
         /* ========= دوال الخطوات ========= */
 
@@ -608,6 +711,8 @@
                         file2,
                         label,
                         note,
+                        reviewerName: reviewerName || "",
+                        isGeologist: !!isGeologist,
                         updatedAt: serverTimestamp()
                     },
                     { merge: true }
@@ -691,6 +796,8 @@
         };
 
         yesBtn.onclick = () => {
+            if (!validateUserInfo()) return;
+
             labels[currentIndex] = "yes";
             updateYNButtons();
             updateStats();
@@ -699,6 +806,8 @@
         };
 
         noBtn.onclick = () => {
+            if (!validateUserInfo()) return;
+
             labels[currentIndex] = "no";
             updateYNButtons();
             updateStats();
@@ -714,6 +823,8 @@
         };
 
         saveNoteBtn.onclick = () => {
+            if (!validateUserInfo()) return;
+
             notes[currentIndex] = noteTextarea.value;
             saveStatus.textContent = "✔️ تم حفظ الملاحظة لهذه الصورة";
             setTimeout(() => (saveStatus.textContent = ""), 2000);
