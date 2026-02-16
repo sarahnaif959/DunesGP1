@@ -670,35 +670,83 @@ let reviewerKey = "";         // must be "1" | "2" | "3" | "4"
 const SESSION_KEY = "dunes_session_v1";
 
 //destantions
+// destinations (dune locations)
 let duneLocations = {};
-async function loadDuneLocations(){
-    try{
-        const res = await fetch("dunes_locations_renumbered.json");
-        const data = await res.json();
 
-        data.forEach(d=>{
-            duneLocations[d.fileName] = d;
-        });
+function normalizeDuneKey(name) {
+  if (!name) return "";
+  let s = String(name).trim().toLowerCase();
 
-        console.log("Dune location JSON loaded", duneLocations);
+  // remove extension (.jpg/.jpeg/.png)
+  s = s.replace(/\.(jpg|jpeg|png)$/i, "");
 
-    }catch(e){
-        console.error("Location JSON not loaded", e);
-    }
+  // extract number from: dune_001, dune-001, dune 001, dune001
+  const m = s.match(/dune[^0-9]*([0-9]+)/i);
+  if (!m) return s;
+
+  const n = String(parseInt(m[1], 10)); // removes leading zeros
+  return `dune_${n}`;                   // matches your JSON keys
 }
-function generateMapLink(fileName){
-    const rec = duneLocations[fileName];
 
-    if(!rec){
-        return null;
+async function loadDuneLocations() {
+  try {
+    // IMPORTANT: file must be in /public so it can be fetched like this
+    const locationsUrl = `${window.location.origin}/dunes_locations_renumbered.json`;
+
+    const res = await fetch(locationsUrl, {
+        headers: { "Accept": "application/json" }
+    });
+    if (!res.ok) {
+        throw new Error(`HTTP ${res.status} while loading dune locations from ${locationsUrl}`);    
     }
 
-    const lat = rec.latitude;
-    const lon = rec.longitude;
+    const raw = await res.json();
 
-    // Google Maps satellite link
-    return `https://www.google.com/maps?q=${lat},${lon}&t=k`;
+    // Your file is an OBJECT keyed by dune_617, dune_618, ...
+    if (raw && !Array.isArray(raw) && typeof raw === "object") {
+      const out = {};
+      for (const [k, v] of Object.entries(raw)) {
+        out[normalizeDuneKey(k)] = v;
+      }
+      duneLocations = out;
+      console.log("Dune location JSON loaded. Count:", Object.keys(duneLocations).length);
+      return;
+    }
+
+    // Fallback if it ever becomes an array
+    if (Array.isArray(raw)) {
+      const out = {};
+      raw.forEach((d) => {
+        const key = d.fileName || d.filename || d.name || d.id;
+        const nk = normalizeDuneKey(key);
+        if (nk) out[nk] = d;
+      });
+      duneLocations = out;
+      console.log("Dune location JSON loaded. Count:", Object.keys(duneLocations).length);
+      return;
+    }
+
+    console.error("Unexpected JSON shape for dune locations:", raw);
+  } catch (e) {
+    console.error("Location JSON not loaded", e);
+  }
 }
+// Load dune locations immediately so it's ready by the time we show images
+        function generateMapLink(fileName) {
+        if (!fileName) return null;
+
+        const key = normalizeDuneKey(fileName);   // dune_617
+        const rec = duneLocations[key];
+        if (!rec) return null;
+
+        // support multiple possible field names
+        const lat = rec.latitude ?? rec.lat ?? rec.Latitude ?? rec.LAT;
+        const lon = rec.longitude ?? rec.lon ?? rec.lng ?? rec.Longitude ?? rec.LON ?? rec.LNG;
+
+        if (lat == null || lon == null) return null;
+
+        return `https://www.google.com/maps?q=${lat},${lon}&t=k`;
+        }
 
 function saveSession() {
   if (!reviewer?.key) return;
@@ -1122,6 +1170,7 @@ async function loadExistingReviewsForReviewer() {
 
         /* ========= تحديث العرض ========= */
         function updateView() {
+            
             const pair = getPair(currentIndex);
 
             if(pair){
