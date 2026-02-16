@@ -535,6 +535,7 @@
         <div class="subtitle">
             الصورة <span id="current-index">7</span> من <span id="total-count">40</span>
         </div>
+        <div id="userWarning" style="text-align:center;color:#b91c1c;font-size:13px;margin-bottom:10px"></div>
 
         <!-- خطوات التقييم -->
         <div class="steps-container">
@@ -650,7 +651,8 @@
         collection,
         query,
         where,
-        getDocs
+        getDocs,
+        getDoc 
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ===== Modal elements (MATCH the HTML ids EXACTLY) ===== */
@@ -668,6 +670,39 @@ let reviewer = null;          // { key, fullName, role }
 let reviewerKey = "";         // must be "1" | "2" | "3" | "4"
 
 const SESSION_KEY = "dunes_session_v1";
+const PROGRESS_KEY_PREFIX = "dunes_progress_v1_"; // per reviewerKey
+
+function progressKeyFor(reviewerKey) {
+  return `${PROGRESS_KEY_PREFIX}${String(reviewerKey || "").trim()}`;
+}
+
+function saveProgressIndex() {
+  if (!reviewer?.key) return;
+  try {
+    localStorage.setItem(
+      progressKeyFor(reviewer.key),
+      JSON.stringify({
+        index: currentIndex,
+        imageName: getPair(currentIndex)?.name || "",
+        updatedAt: Date.now()
+      })
+    );
+  } catch (e) {
+    console.warn("Could not save progress", e);
+  }
+}
+
+function loadProgressIndex(reviewerKey) {
+  try {
+    const raw = localStorage.getItem(progressKeyFor(reviewerKey));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed.index === "number" && parsed.index >= 0) return parsed;
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 //destantions
 // destinations (dune locations)
@@ -911,7 +946,11 @@ enableIndexedDbPersistence(db).catch((err) => {
   console.warn("Offline persistence not enabled:", err?.code || err);
 });
 
-const API_BASE = "https://dunesgp1.onrender.com";
+
+const API_BASE =
+  (window.location.hostname === "dunesgp1.onrender.com" || window.location.hostname === "127.0.0.1")
+    ? "https://dunesgp1.onrender.com"
+    : window.location.origin;
         // These two constants are only metadata to store in Firestore (optional)
         // so you remember which Drive folders were used.
         const DRIVE_FOLDER_NAME_1 = "Screenshots_Experts";
@@ -920,12 +959,15 @@ const API_BASE = "https://dunesgp1.onrender.com";
         let allPairs = [];   // all images from server
         let pairs = [];      // images assigned to this reviewer
         let assigned = false;
+
+        let isBootstrapping = false; // true while restoring progress after refresh
         
 
         async function loadPairs() {
             const res = await fetch(`${API_BASE}/api/pairs`, {
                 method: "GET",
-                headers: { "Accept": "application/json" }
+                headers: { "Accept": "application/json" },
+                cache: "no-store" // ensure we get the latest data, not a cached version
             });
             if (!res.ok) {
                 throw new Error(`Failed to load pairs: ${res.status}`);
@@ -939,7 +981,9 @@ const API_BASE = "https://dunesgp1.onrender.com";
             pairs = []; // temporary until user assigned
         }
 
-        function assignImagesForReviewerKey(key) {
+function assignImagesForReviewerKey(key, opts = {}) {
+  const { skipRender = false } = opts;
+
   if (!Array.isArray(allPairs) || allPairs.length === 0) {
     console.warn("allPairs is empty. Did /api/pairs load?");
     pairs = [];
@@ -947,27 +991,25 @@ const API_BASE = "https://dunesgp1.onrender.com";
   }
 
   const total = allPairs.length;
-  const half = Math.ceil(total / 2); // works even if not exactly 1000
+  const half = Math.ceil(total / 2);
 
-  // 1 & 3 => first half, 2 & 4 => second half
   if (key === "1" || key === "3") {
     pairs = allPairs.slice(0, half);
   } else if (key === "2" || key === "4") {
     pairs = allPairs.slice(half);
   } else {
-    // fallback: give all
     pairs = allPairs.slice();
   }
 
-  // Reset arrays for THIS reviewer slice
   labels = new Array(pairs.length).fill(null);
   notes  = new Array(pairs.length).fill("");
 
-  currentIndex = 0;
-
-  // Refresh UI
-  updateView();
-  updateNextButtonState();
+  // مهم: لا تعرض index 0 أثناء الاسترجاع
+  if (!skipRender) {
+    currentIndex = 0;
+    updateView();
+    updateNextButtonState();
+  }
 }
 
         function getTotalImages() {
@@ -994,6 +1036,7 @@ const API_BASE = "https://dunesgp1.onrender.com";
 
         const imgElement1 = document.getElementById("main-image-1");
         const imgElement2 = document.getElementById("main-image-2");
+        const userWarning = document.getElementById("userWarning");
         const currentIndexSpan = document.getElementById("current-index");
         const totalCountSpan = document.getElementById("total-count");
         const prevBtn = document.getElementById("prev-btn");
@@ -1092,47 +1135,73 @@ async function syncCurrentToServer() {
   }
 }
 
-async function loadExistingReviewsForReviewer() {
-  if (!reviewer?.key) return;
+        async function loadExistingReviewsForReviewer() {
+        if (!reviewer?.key) return;
 
-  // Load all documents for this reviewer
-  const q = query(
-    collection(db, "reviews"),
-    where("reviewerKey", "==", reviewer.key)
-  );
+        // Load all review docs for this reviewerKey
+        const q = query(collection(db, "reviews", reviewer.fullName, "images"));
+        const snap = await getDocs(q);
 
-  const snap = await getDocs(q);
+        // Map fileName -> { label, note }
+        const byFile = new Map();
+        snap.forEach((d) => {
+            const data = d.data();
+            if (data?.fileName) {
+            byFile.set(String(data.fileName), {
+                label: data.label || null,
+                note: data.note || ""
+            });
+            }
+        });
 
-  // Build a map from fileName -> { label, note }
-  const byFile = new Map();
-  snap.forEach((d) => {
-    const data = d.data();
-    if (data?.fileName) {
-      byFile.set(String(data.fileName), {
-        label: data.label || null,
-        note: data.note || ""
-      });
-    }
-  });
+        // Apply to current assigned slice (pairs[])
+        for (let i = 0; i < pairs.length; i++) {
+            const p = pairs[i];
+            const hit = byFile.get(String(p.name || ""));
+            if (hit) {
+            labels[i] = hit.label;
+            notes[i] = hit.note;
+            }
+        }
 
-  // Apply to current assigned slice (pairs[])
-  for (let i = 0; i < pairs.length; i++) {
-    const p = pairs[i];
-    const hit = byFile.get(String(p.name || ""));
-    if (hit) {
-      labels[i] = hit.label;
-      notes[i] = hit.note;
-    }
-  }
+        // ✅ Resume order:
+        // A) Firestore lock lastImageName
+        // B) localStorage saved index
+        // C) first unanswered
+        let resumeIndex = null;
 
-  // Jump to first unanswered
-  const firstUnanswered = labels.findIndex(v => v !== "yes" && v !== "no");
-  currentIndex = firstUnanswered === -1 ? pairs.length - 1 : firstUnanswered;
+        // A) Firestore lock
+        try {
+            const lockRef = doc(db, "locks", `reviewers_${reviewer.key}`);
+            const lockSnap = await getDoc(lockRef);
+            const lastName = lockSnap.exists() ? String(lockSnap.data()?.lastImageName || "") : "";
+            if (lastName) {
+            const idx = pairs.findIndex(p => String(p?.name || "") === lastName);
+            if (idx >= 0) resumeIndex = idx;
+            }
+        } catch (e) {
+            console.warn("Could not read lastImageName", e);
+        }
 
-  updateView();
-  updateNextButtonState();
-}
+        // B) localStorage
+        if (resumeIndex == null) {
+            const saved = loadProgressIndex(reviewer.key);
+            if (saved?.index != null) {
+            resumeIndex = Math.min(Math.max(saved.index, 0), Math.max(pairs.length - 1, 0));
+            }
+        }
 
+        // C) fallback
+        if (resumeIndex == null) {
+            const firstUnanswered = labels.findIndex(v => v !== "yes" && v !== "no");
+            resumeIndex = firstUnanswered === -1 ? Math.max(pairs.length - 1, 0) : firstUnanswered;
+        }
+
+        currentIndex = resumeIndex;
+
+        updateView();
+        updateNextButtonState();
+        }
         
 
         /* ========= الإحصائيات ========= */
@@ -1187,12 +1256,12 @@ async function loadExistingReviewsForReviewer() {
             }
         }
 
-            if (pair && reviewer?.key) {
+            if (!isBootstrapping && pair && reviewer?.key) {
             const lockRef = doc(db, "locks", `reviewers_${reviewer.key}`);
-            setDoc(lockRef, {
-                lastImageName: pair.name
-            }, { merge: true });
-}
+            setDoc(lockRef, { lastImageName: pair.name }, { merge: true });
+            saveProgressIndex();
+            }
+
             if (pair) {
                 imgElement1.src = getImageUrlFromDriveId(pair.expertFileId);
                 imgElement2.src = getImageUrlFromDriveId(pair.maskFileId);
@@ -1265,7 +1334,11 @@ async function loadExistingReviewsForReviewer() {
             updateNextButtonState();
             syncCurrentToServer();
             updateSteps(2);
+                    syncCurrentToServer();
+saveProgressIndex();
+
         };
+
 
         noBtn.onclick = () => {
             if (!validateUserInfo()) return;
@@ -1276,7 +1349,11 @@ async function loadExistingReviewsForReviewer() {
             updateNextButtonState();
             syncCurrentToServer();
             updateSteps(2);
+                    syncCurrentToServer();
+saveProgressIndex();
+
         };
+
 
         noteTextarea.oninput = () => {
             notes[currentIndex] = noteTextarea.value;
@@ -1293,6 +1370,9 @@ async function loadExistingReviewsForReviewer() {
             setTimeout(() => (saveStatus.textContent = ""), 2000);
             syncCurrentToServer();
             updateSteps(4);
+                    syncCurrentToServer();
+saveProgressIndex();
+
         };
 
         // بدء العرض
@@ -1311,10 +1391,18 @@ async function loadExistingReviewsForReviewer() {
                 };
 
                 modal.style.display = "none";
-                assignImagesForReviewerKey(reviewerKey);
+
+                // Restore بدون ما نكتب index 0 بالغلط
+                isBootstrapping = true;
+                assignImagesForReviewerKey(reviewerKey, { skipRender: true });
                 await loadExistingReviewsForReviewer();
-                return; // important: don't continue default flow
-}
+                isBootstrapping = false;
+
+                // الآن اعرض الموضع الصحيح
+                updateView();
+                updateNextButtonState();
+                return;
+                }
 
                 // Initialize arrays after we know how many pairs exist
                 labels = new Array(getTotalImages()).fill(null); // "yes" / "no" / null
