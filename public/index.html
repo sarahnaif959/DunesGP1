@@ -948,9 +948,9 @@ enableIndexedDbPersistence(db).catch((err) => {
 
 
 const API_BASE =
-  (window.location.hostname === "dunesgp1.onrender.com" || window.location.hostname === "127.0.0.1")
+  window.location.hostname.endsWith("netlify.app")
     ? "https://dunesgp1.onrender.com"
-    : window.location.origin;
+    : window.location.origin; // local or same-host deployments
         // These two constants are only metadata to store in Firestore (optional)
         // so you remember which Drive folders were used.
         const DRIVE_FOLDER_NAME_1 = "Screenshots_Experts";
