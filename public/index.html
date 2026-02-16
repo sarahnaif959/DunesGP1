@@ -578,6 +578,20 @@
             </div>
         </div>
 
+        <div class="image-wrapper">
+            <img id="main-image-1">
+            <img id="main-image-2">
+        </div>
+
+        <div style="text-align:center;margin-top:10px">
+            📍 موقع الكثيب:
+        <br>
+            <a id="mapLink" href="#" target="_blank"
+            style="color:#2563eb;font-weight:bold;font-size:14px">
+             جاري إنشاء الرابط...
+            </a>
+        </div>
+
         <!-- الإحصائيات -->
         <div class="badges-row">
             <div class="badge" style="background:#dcfce7;color:#166534;">
@@ -660,6 +674,37 @@ let reviewer = null;          // { key, fullName, role }
 let reviewerKey = "";         // must be "1" | "2" | "3" | "4"
 
 const SESSION_KEY = "dunes_session_v1";
+
+//destantions
+let duneLocations = {};
+async function loadDuneLocations(){
+    try{
+        const res = await fetch("dunes_locations_renumbered.json");
+        const data = await res.json();
+
+        data.forEach(d=>{
+            duneLocations[d.fileName] = d;
+        });
+
+        console.log("Dune location JSON loaded", duneLocations);
+
+    }catch(e){
+        console.error("Location JSON not loaded", e);
+    }
+}
+function generateMapLink(fileName){
+    const rec = duneLocations[fileName];
+
+    if(!rec){
+        return null;
+    }
+
+    const lat = rec.latitude;
+    const lon = rec.longitude;
+
+    // Google Maps satellite link
+    return `https://www.google.com/maps?q=${lat},${lon}&t=k`;
+}
 
 function saveSession() {
   if (!reviewer?.key) return;
@@ -1085,11 +1130,25 @@ async function loadExistingReviewsForReviewer() {
         function updateView() {
             const pair = getPair(currentIndex);
 
+            if(pair){
+            const link = generateMapLink(pair.name);
+
+            const mapEl = document.getElementById("mapLink");
+
+            if(link){
+                mapEl.href = link;
+                mapEl.textContent = "فتح الموقع في Google Earth / Maps";
+            }else{
+                mapEl.textContent = "لا يوجد موقع لهذا الكثيب";
+                mapEl.removeAttribute("href");
+            }
+        }
+
             if (pair && reviewer?.key) {
-  const lockRef = doc(db, "locks", `reviewers_${reviewer.key}`);
-  setDoc(lockRef, {
-    lastImageName: pair.name
-  }, { merge: true });
+            const lockRef = doc(db, "locks", `reviewers_${reviewer.key}`);
+            setDoc(lockRef, {
+                lastImageName: pair.name
+            }, { merge: true });
 }
             if (pair) {
                 imgElement1.src = getImageUrlFromDriveId(pair.expertFileId);
@@ -1113,6 +1172,8 @@ async function loadExistingReviewsForReviewer() {
 
             refreshStepsForCurrentImage();
         }
+
+
 
         /* ========= تمكين / تعطيل زر التالي ========= */
         function hasCurrentLabel() {
@@ -1195,6 +1256,7 @@ async function loadExistingReviewsForReviewer() {
         (async () => {
             try {
                 await loadPairs();
+                await loadDuneLocations();
                 const saved = loadSession();
                 if (saved?.reviewerKey && saved?.fullName && saved?.role) {
                 reviewerKey = String(saved.reviewerKey);
