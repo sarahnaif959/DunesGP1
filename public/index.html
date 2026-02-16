@@ -824,7 +824,7 @@ enableIndexedDbPersistence(db).catch((err) => {
   console.warn("Offline persistence not enabled:", err?.code || err);
 });
 
-        const API_BASE = "http://localhost:3000";
+const API_BASE = "https://dunesgp1.onrender.com";
         // These two constants are only metadata to store in Firestore (optional)
         // so you remember which Drive folders were used.
         const DRIVE_FOLDER_NAME_1 = "Screenshots_Experts";
@@ -833,6 +833,7 @@ enableIndexedDbPersistence(db).catch((err) => {
         let allPairs = [];   // all images from server
         let pairs = [];      // images assigned to this reviewer
         let assigned = false;
+        
 
         async function loadPairs() {
             const res = await fetch(`${API_BASE}/api/pairs`, {
