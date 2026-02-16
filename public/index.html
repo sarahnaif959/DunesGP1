@@ -1,8 +1,7 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
-
-<head>
-    <meta charset="UTF-8" />
+<!-- saved from url=(0028)https://dunesgp.netlify.app/ -->
+<html lang="ar" dir="rtl"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
     <title>عارض الصور مع التقييم والملاحظات</title>
 
     <style>
@@ -443,28 +442,98 @@
 
 <body>
 
-    <div class="page">
+    <!-- LOGIN POPUP (4 reviewers + role + ack) -->
+     <div id="loginModal" style="
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,0.65);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        z-index:9999;
+        ">
+        <div style="
+            background:white;
+            padding:25px;
+            border-radius:18px;
+            width:90%;
+            max-width:520px;
+            text-align:center;
+        ">
 
-        <!-- بيانات المقيّم -->
-        <div class="user-info">
-            <label class="user-label" for="reviewer-name">👤 اسمك الكامل:</label>
-            <input
-                id="reviewer-name"
-                type="text"
-                placeholder="اكتبي اسمك هنا..."
-            />
+        <h2 style="margin:0 0 6px 0;">مرحباً 👋</h2>
+        <p style="font-size:13px;color:#666;margin:0 0 14px 0;">
+            اختر اسم المقيّم ثم أكمل بياناتك قبل بدء التقييم
+        </p>
 
-            <label class="user-agree"><br>
-                <input type="checkbox" id="geo-confirm" />
-                * أقرّ بأنني متخصص / دكتور / باحث في الجيولوجيا أو في مجال قريب ومناسب لتقييم هذه الصور.
-            </label><br>
+            <!-- 4 reviewer buttons -->
+            <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:12px;">
+            <button class="reviewer-btn" data-reviewer="1"
+                style="padding:10px 14px;border-radius:999px;border:1px solid #ddd;background:#f3f4f6;cursor:pointer;font-weight:700;">
+                1
+            </button>
 
-            <div id="user-warning" class="user-warning"></div>
+            <button class="reviewer-btn" data-reviewer="2"
+                style="padding:10px 14px;border-radius:999px;border:1px solid #ddd;background:#f3f4f6;cursor:pointer;font-weight:700;">
+                2
+            </button>
+
+            <button class="reviewer-btn" data-reviewer="3"
+                style="padding:10px 14px;border-radius:999px;border:1px solid #ddd;background:#f3f4f6;cursor:pointer;font-weight:700;">
+                3
+            </button>
+
+            <button class="reviewer-btn" data-reviewer="4"
+                style="padding: 10px 14px;border-radius:999px;border:1px solid #ddd;background:#f3f4f6;cursor:pointer;font-weight:700;">
+                4
+            </button>
+            </div>
+
+            <div id="pickedReviewer" style="font-size:12px;color:#111;margin-bottom:10px;min-height:16px;"></div>
+
+            <input id="firstName" placeholder="الاسم الأول" autocomplete="given-name"
+            style="width:100%;margin:6px 0;padding:9px;border-radius:8px;border:1px solid #ccc">
+
+            <input id="lastName" placeholder="اسم العائلة" autocomplete="family-name"
+            style="width:100%;margin:6px 0;padding:9px;border-radius:8px;border:1px solid #ccc">
+
+            <div style="text-align:right;margin-top:10px;">
+            <label style="display:block;font-size:13px;margin-bottom:6px;color:#111;">
+                الصفة (متخصص جيولوجيا)
+            </label>
+
+            <select id="geoLevel" style="width:100%;padding:9px;border-radius:8px;border:1px solid #ccc;background:#fff;">
+                <option value="" selected>اختر...</option>
+                <option value="student">Student</option>
+                <option value="professor">Professor</option>
+                <option value="bachelor">Bachelor</option>
+                <option value="master">Master</option>
+            </select>
+
+            <div style="font-size:12px;color:#b91c1c;margin-top:6px;">
+                ملاحظة: هذا الموقع مخصص لمتخصصي الجيولوجيا فقط.
+            </div>
+            </div>
+
+            <label style="display:flex;gap:8px;font-size:13px;margin-top:12px;text-align:right;align-items:flex-start;">
+            <input type="checkbox" id="confirmInfo" style="margin-top:3px;">
+            أقر بأن جميع المعلومات التي أدخلتها صحيحة.
+            </label>
+
+            <button id="startBtn" disabled
+            style="margin-top:15px;padding:11px;border:none;border-radius:999px;background:#2563eb;color:white;font-weight:bold;width:100%;opacity:.6;cursor:not-allowed;">
+            بدء التقييم
+            </button>
+
+            <div id="loginError" style="color:#b91c1c;font-size:12px;margin-top:10px;min-height:16px;"></div>
+
         </div>
+    </div>
 
+    <div class="page">
         <h1 class="title">هل تحديد الكثبان الهلالية في هذه الصورة دقيق ؟ </h1>
         <div class="subtitle">
-            الصورة <span id="current-index">1</span> من <span id="total-count">150</span>
+            الصورة <span id="current-index">7</span> من <span id="total-count">40</span>
         </div>
 
         <!-- خطوات التقييم -->
@@ -475,13 +544,13 @@
             </div>
             <div class="steps-wrapper">
                 <div class="step-line"></div>
-                <div class="step-line-progress" id="progress-line"></div>
+                <div class="step-line-progress" id="progress-line" style="width: 25%;"></div>
 
-                <div class="step" id="step-1">
+                <div class="step completed" id="step-1">
                     <div class="step-circle">👀</div>
                     <div class="step-label">شاهد الصورتين</div>
                 </div>
-                <div class="step" id="step-2">
+                <div class="step completed active" id="step-2">
                     <div class="step-circle">✓</div>
                     <div class="step-label">اختر نعم أو لا</div>
                 </div>
@@ -512,26 +581,26 @@
         <!-- الإحصائيات -->
         <div class="badges-row">
             <div class="badge" style="background:#dcfce7;color:#166534;">
-                ✓ نعم: <span id="yes-count" class="count">0</span>
+                ✓ نعم: <span id="yes-count" class="count">5</span>
             </div>
             <div class="badge" style="background:#fee2e2;color:#b91c1c;">
-                ✗ لا: <span id="no-count" class="count">0</span>
+                ✗ لا: <span id="no-count" class="count">1</span>
             </div>
             <div class="badge" style="background:#e5e7eb;color:#374151;">
-                ⏳ لم تُقيّم بعد: <span id="pending-count" class="count">150</span>
+                ⏳ لم تُقيّم بعد: <span id="pending-count" class="count">34</span>
             </div>
         </div>
 
         <!-- خانتين للصورة (من فولدرين مختلفين) -->
         <div class="image-wrapper">
-            <img id="main-image-1" src="" alt="الصورة الحالية - 1" />
-            <img id="main-image-2" src="" alt="الصورة الحالية - 2" />
+            <img id="main-image-1" src="" alt="الصورة الحالية - 1">
+            <img id="main-image-2" src="" alt="الصورة الحالية - 2">
         </div>
 
         <!-- أزرار نعم / لا -->
         <div class="yn-buttons">
-            <button id="yes-btn" class="yn-yes">نعم ✓</button>
-            <button id="no-btn" class="yn-no">لا ✗</button>
+            <button id="yes-btn" class="yn-yes" style="background: rgb(22, 163, 74);">نعم ✓</button>
+            <button id="no-btn" class="yn-no" style="background: rgb(239, 68, 68);">لا ✗</button>
         </div>
 
         <!-- السابق / التالي -->
@@ -562,45 +631,270 @@
 
     <!-- سكربت Firebase + منطق التقييم -->
     <script type="module">
-        /* ========= ربط Firebase ========= */
+    /* ========= ربط Firebase ========= */
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import {
-            getFirestore,
-            doc,
-            setDoc,
-            serverTimestamp
+        getFirestore,
+        doc,
+        setDoc,
+        serverTimestamp,
+        runTransaction,
+        collection,
+        query,
+        where,
+        getDocs
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+/* ===== Modal elements (MATCH the HTML ids EXACTLY) ===== */
+const modal = document.getElementById("loginModal");
+const firstNameEl = document.getElementById("firstName");
+const lastNameEl  = document.getElementById("lastName");
+const geoLevelEl  = document.getElementById("geoLevel");
+const confirmInfoEl = document.getElementById("confirmInfo");
+const startBtn = document.getElementById("startBtn");
+const loginError = document.getElementById("loginError");
+const pickedReviewerEl = document.getElementById("pickedReviewer");
+const reviewerBtns = Array.from(document.querySelectorAll(".reviewer-btn"));
+
+let reviewer = null;          // { key, fullName, role }
+let reviewerKey = "";         // must be "1" | "2" | "3" | "4"
+
+const SESSION_KEY = "dunes_session_v1";
+
+function saveSession() {
+  if (!reviewer?.key) return;
+  const payload = {
+    reviewerKey: reviewer.key,
+    fullName: reviewer.fullName,
+    role: reviewer.role
+  };
+  localStorage.setItem(SESSION_KEY, JSON.stringify(payload));
+}
+
+function loadSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function clearSession() {
+  localStorage.removeItem(SESSION_KEY);
+}
+
+/* ====== Enable/Disable Start button ====== */
+function updateStartState() {
+  const first = (firstNameEl.value || "").trim();
+  const last  = (lastNameEl.value || "").trim();
+  const role  = (geoLevelEl.value || "").trim();
+  const ack   = !!confirmInfoEl.checked;
+
+  const ok = !!reviewerKey && !!first && !!last && !!role && ack;
+  startBtn.disabled = !ok;
+  startBtn.style.opacity = ok ? "1" : ".6";
+  startBtn.style.cursor = ok ? "pointer" : "not-allowed";
+}
+
+[firstNameEl, lastNameEl, geoLevelEl, confirmInfoEl].forEach(el => {
+  el.addEventListener("input", updateStartState);
+  el.addEventListener("change", updateStartState);
+});
+
+/* ====== Visual selection of reviewer button ====== */
+reviewerBtns.forEach(btn => {
+  btn.addEventListener("click", () => {
+    reviewerBtns.forEach(b => b.style.outline = "none");
+    btn.style.outline = "3px solid #2563eb";
+
+    // reviewerKey will ALWAYS be 1,2,3,4
+    reviewerKey = String(btn.dataset.reviewer);
+
+    pickedReviewerEl.textContent = `تم اختيار المقيّم رقم: ${reviewerKey}`;
+    loginError.textContent = "";
+    updateStartState();
+  });
+});
+
+/* ====== Firestore lock (transaction) ======
+   Collection: locks
+   Document: reviewers_<name>   e.g. reviewers_sarah
+*/
+async function reserveReviewerOrThrow(key, payload) {
+  const lockRef = doc(db, "locks", `reviewers_${key}`);
+
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(lockRef);
+
+    if (snap.exists() && snap.data()?.taken === true) {
+      throw new Error("TAKEN");
+    }
+
+    tx.set(lockRef, {
+  taken: true,
+  reviewerKey: key,
+  reviewerName: payload.fullName,
+  role: payload.role,
+
+  imageName: "",   
+
+  takenAt: serverTimestamp()
+}, { merge: true });
+  });
+}
+
+    /* ====== Start button ====== */
+        startBtn.addEventListener("click", async () => {
+        const first = (firstNameEl.value || "").trim();
+        const last  = (lastNameEl.value || "").trim();
+        const role  = (geoLevelEl.value || "").trim();
+        const ack   = !!confirmInfoEl.checked;
+
+        if (!reviewerKey) {
+            loginError.textContent = "رجاءً اختر اسم المقيّم";
+            return;
+        }
+        if (!first || !last) {
+            loginError.textContent = "رجاءً أدخل الاسم الأول واسم العائلة.";
+            return;
+        }
+        if (!role) {
+            loginError.textContent = "رجاءً اختر الصفة (Student/Professor/Bachelor/Master).";
+            return;
+        }
+        if (!ack) {
+            loginError.textContent = "يجب الموافقة على الإقرار.";
+            return;
+        }
+
+        reviewer = {
+            key: String(reviewerKey),   
+            reviewerNumber: String(reviewerKey),
+            fullName: `${first} ${last}`,
+            role
+        };
+
+        startBtn.disabled = true;
+        startBtn.style.opacity = ".6";
+        startBtn.style.cursor = "not-allowed";
+
+        try {
+            // Reserve the reviewer button in Firestore
+            await reserveReviewerOrThrow(reviewerKey, reviewer);
+
+            // Hide modal
+            modal.style.display = "none";
+            saveSession();
+
+            // Assign images based on reviewerKey
+            assignImagesForReviewerKey(reviewerKey);
+await loadExistingReviewsForReviewer();   // 👈 resume from Firestore
+
+        } catch (e) {
+            if (String(e.message) === "TAKEN") {
+            loginError.textContent = "هذا المقيّم مستخدم حالياً. اختر اسماً آخر.";
+            } else {
+            loginError.textContent = "تعذر الحفظ في Firebase. راجع Firestore Rules.";
+            console.error(e);
+            }
+            // Re-enable start if inputs are ok
+            updateStartState();
+        }
+        });
+
+
         const firebaseConfig = {
-            apiKey: "AIzaSyCNeN7ZV9EIa18_F3m61QpFwzzeg4z3Ps",
-            authDomain: "dunes-site.firebaseapp.com",
-            projectId: "dunes-site",
-            storageBucket: "dunes-site.appspot.com",
-            messagingSenderId: "640890759078",
-            appId: "1:640890759078:web:bfabf23aef65c731ec8c53",
-            measurementId: "G-LK7THEK9T"
+        apiKey: "AIzaSyBHZZt3nCm5KmpOBsuB7Ho9QoS94BDU-N8",
+        authDomain: "expert-dunes.firebaseapp.com",
+        projectId: "expert-dunes",
+        storageBucket: "expert-dunes.firebasestorage.app",
+        messagingSenderId: "85067583913",
+        appId: "1:85067583913:web:431b6528e269c9181134b8",
+        measurementId: "G-ESEZKT9Z7E"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        /* ========= الإعداد الأساسي ========= */
-        const TOTAL_IMAGES = 40;
-        const FOLDER1 = "Export (Screenshot)";
-        const FOLDER2 = "Images";
+        import { enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        function getFileName(index) {
-            const num = String(index + 1).padStart(3, "0");
-            return `dune_${num}.jpg`;
+enableIndexedDbPersistence(db).catch((err) => {
+  console.warn("Offline persistence not enabled:", err?.code || err);
+});
+
+        const API_BASE = "http://localhost:3000";
+        // These two constants are only metadata to store in Firestore (optional)
+        // so you remember which Drive folders were used.
+        const DRIVE_FOLDER_NAME_1 = "Screenshots_Experts";
+        const DRIVE_FOLDER_NAME_2 = "Masks";
+
+        let allPairs = [];   // all images from server
+        let pairs = [];      // images assigned to this reviewer
+        let assigned = false;
+
+        async function loadPairs() {
+            const res = await fetch(`${API_BASE}/api/pairs`, {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+            if (!res.ok) {
+                throw new Error(`Failed to load pairs: ${res.status}`);
+            }
+            const data = await res.json();
+            if (!Array.isArray(data)) {
+                throw new Error("/api/pairs did not return an array");
+            }
+            // Expect items like: { name, expertFileId, maskFileId }
+            allPairs = data;
+            pairs = []; // temporary until user assigned
         }
 
-        function getImagePath1(index) {
-            return `${FOLDER1}/${getFileName(index)}`;
+        function assignImagesForReviewerKey(key) {
+  if (!Array.isArray(allPairs) || allPairs.length === 0) {
+    console.warn("allPairs is empty. Did /api/pairs load?");
+    pairs = [];
+    return;
+  }
+
+  const total = allPairs.length;
+  const half = Math.ceil(total / 2); // works even if not exactly 1000
+
+  // 1 & 3 => first half, 2 & 4 => second half
+  if (key === "1" || key === "3") {
+    pairs = allPairs.slice(0, half);
+  } else if (key === "2" || key === "4") {
+    pairs = allPairs.slice(half);
+  } else {
+    // fallback: give all
+    pairs = allPairs.slice();
+  }
+
+  // Reset arrays for THIS reviewer slice
+  labels = new Array(pairs.length).fill(null);
+  notes  = new Array(pairs.length).fill("");
+
+  currentIndex = 0;
+
+  // Refresh UI
+  updateView();
+  updateNextButtonState();
+}
+
+        function getTotalImages() {
+            return pairs.length;
         }
 
-        function getImagePath2(index) {
-            return `${FOLDER2}/${getFileName(index)}`;
+        function getPair(index) {
+            return pairs[index];
         }
+
+        function getImageUrlFromDriveId(fileId) {
+            // Backend should stream bytes with correct Content-Type
+            return `${API_BASE}/api/file/${encodeURIComponent(fileId)}`;
+        }
+
 
         // عناصر الخطوات
         const step1 = document.getElementById("step-1");
@@ -625,47 +919,29 @@
         const noCountSpan = document.getElementById("no-count");
         const pendingCountSpan = document.getElementById("pending-count");
 
-        const reviewerNameInput = document.getElementById("reviewer-name");
-        const geoConfirmCheckbox = document.getElementById("geo-confirm");
-        const userWarning = document.getElementById("user-warning");
-
-        const labels = new Array(TOTAL_IMAGES).fill(null); // "yes" / "no" / null
-        const notes = new Array(TOTAL_IMAGES).fill("");
+        let labels = []; // size = pairs.length (set after load)
+        let notes = [];  // size = pairs.length (set after load)
 
         let currentIndex = 0;   // 0-based
         let currentStep = 1;    // 1..4
         let reviewerName = "";
-        let isGeologist = false;
+        let reviewerLevel = "";
+        let loggedIn = false;
 
-        /* ========= تحقق من بيانات المقيّم ========= */
+    
+    /* ========= تحقق من بيانات المقيّم ========= */
 
         function validateUserInfo() {
-            reviewerName = (reviewerNameInput.value || "").trim();
-            isGeologist = geoConfirmCheckbox.checked;
-
-            if (!reviewerName) {
-                userWarning.textContent = "رجاءً اكتبي اسمك أولاً قبل بدء التقييم.";
-                return false;
-            }
-
-            if (!isGeologist) {
-                userWarning.textContent = "يجب الإقرار بأنك متخصصة في الجيولوجيا أو مجال قريب قبل التقييم.";
-                return false;
-            }
-
-            userWarning.textContent = "";
-            return true;
+        if (!reviewer) {
+            document.getElementById("loginModal").style.display = "flex";
+            return false;
         }
+        return true;
+        }
+        
+        
 
-        reviewerNameInput.addEventListener("input", () => {
-            userWarning.textContent = "";
-        });
-
-        geoConfirmCheckbox.addEventListener("change", () => {
-            userWarning.textContent = "";
-        });
-
-        /* ========= دوال الخطوات ========= */
+    /* ========= دوال الخطوات ========= */
 
         function updateSteps(step) {
             currentStep = step;
@@ -693,47 +969,95 @@
             updateSteps(step);
         }
 
-        /* ========= حفظ البيانات في Firestore ========= */
-        async function syncCurrentToServer() {
-            const index = currentIndex + 1;
-            const fileName = getFileName(currentIndex);
-            const file1 = `${FOLDER1}/${fileName}`;
-            const file2 = `${FOLDER2}/${fileName}`;
-            const label = labels[currentIndex] || "";
-            const note = notes[currentIndex] || "";
+    /* ========= حفظ البيانات في Firestore ========= */
+        function safeDocId(s) {
+  // Firestore doc IDs cannot contain "/" and some other awkward chars
+  return String(s).replace(/[\/#?[\]]/g, "_");
+}
 
-            try {
-                await setDoc(
-                    doc(db, "reviews", String(index)),
-                    {
-                        index,
-                        file1,
-                        file2,
-                        label,
-                        note,
-                        reviewerName: reviewerName || "",
-                        isGeologist: !!isGeologist,
-                        updatedAt: serverTimestamp()
-                    },
-                    { merge: true }
-                );
-            } catch (err) {
-                console.error("Failed to sync with Firestore:", err);
-            }
-        }
+async function syncCurrentToServer() {
+  if (!reviewer?.fullName) return;
+
+  const pair = getPair(currentIndex);
+  if (!pair) return;
+
+  const fileName = pair.name || "unknown";
+  const label = labels[currentIndex] || "";
+  const note  = notes[currentIndex] || "";
+
+  try {
+    await setDoc(
+      doc(db, "reviews", reviewer.fullName, "images", fileName),
+      {
+        reviewerName: reviewer.fullName,
+        reviewerKey: reviewer.key,
+        fileName: fileName,
+        label: label,
+        note: note,
+        updatedAt: serverTimestamp()
+      },
+      { merge: true }
+    );
+
+  } catch (err) {
+    console.error("Firestore save error:", err);
+  }
+}
+
+async function loadExistingReviewsForReviewer() {
+  if (!reviewer?.key) return;
+
+  // Load all documents for this reviewer
+  const q = query(
+    collection(db, "reviews"),
+    where("reviewerKey", "==", reviewer.key)
+  );
+
+  const snap = await getDocs(q);
+
+  // Build a map from fileName -> { label, note }
+  const byFile = new Map();
+  snap.forEach((d) => {
+    const data = d.data();
+    if (data?.fileName) {
+      byFile.set(String(data.fileName), {
+        label: data.label || null,
+        note: data.note || ""
+      });
+    }
+  });
+
+  // Apply to current assigned slice (pairs[])
+  for (let i = 0; i < pairs.length; i++) {
+    const p = pairs[i];
+    const hit = byFile.get(String(p.name || ""));
+    if (hit) {
+      labels[i] = hit.label;
+      notes[i] = hit.note;
+    }
+  }
+
+  // Jump to first unanswered
+  const firstUnanswered = labels.findIndex(v => v !== "yes" && v !== "no");
+  currentIndex = firstUnanswered === -1 ? pairs.length - 1 : firstUnanswered;
+
+  updateView();
+  updateNextButtonState();
+}
+
+        
 
         /* ========= الإحصائيات ========= */
-
         function updateStats() {
             let yesCount = 0;
             let noCount = 0;
 
-            for (let i = 0; i < TOTAL_IMAGES; i++) {
+            for (let i = 0; i < getTotalImages(); i++) {
                 if (labels[i] === "yes") yesCount++;
                 else if (labels[i] === "no") noCount++;
             }
 
-            const pendingCount = TOTAL_IMAGES - yesCount - noCount;
+            const pendingCount = getTotalImages() - yesCount - noCount;
 
             yesCountSpan.textContent = yesCount;
             noCountSpan.textContent = noCount;
@@ -741,7 +1065,6 @@
         }
 
         /* ========= ألوان أزرار نعم / لا ========= */
-
         function updateYNButtons() {
             const value = labels[currentIndex];
 
@@ -758,18 +1081,30 @@
         }
 
         /* ========= تحديث العرض ========= */
-
         function updateView() {
-            imgElement1.src = getImagePath1(currentIndex);
-            imgElement2.src = getImagePath2(currentIndex);
+            const pair = getPair(currentIndex);
+
+            if (pair && reviewer?.key) {
+  const lockRef = doc(db, "locks", `reviewers_${reviewer.key}`);
+  setDoc(lockRef, {
+    lastImageName: pair.name
+  }, { merge: true });
+}
+            if (pair) {
+                imgElement1.src = getImageUrlFromDriveId(pair.expertFileId);
+                imgElement2.src = getImageUrlFromDriveId(pair.maskFileId);
+            } else {
+                imgElement1.removeAttribute("src");
+                imgElement2.removeAttribute("src");
+            }
 
             currentIndexSpan.textContent = (currentIndex + 1).toString();
-            totalCountSpan.textContent = TOTAL_IMAGES.toString();
+            totalCountSpan.textContent = getTotalImages().toString();
 
             noteTextarea.value = notes[currentIndex] || "";
 
             prevBtn.disabled = currentIndex === 0;
-            nextBtn.disabled = currentIndex === TOTAL_IMAGES - 1;
+            updateNextButtonState();
 
             updateYNButtons();
             updateStats();
@@ -778,21 +1113,42 @@
             refreshStepsForCurrentImage();
         }
 
-        /* ========= الأحداث ========= */
+        /* ========= تمكين / تعطيل زر التالي ========= */
+        function hasCurrentLabel() {
+            return labels[currentIndex] === "yes" || labels[currentIndex] === "no";
+        }
 
+        function updateNextButtonState() {
+            const total = getTotalImages();
+            const isLast = currentIndex >= total - 1;
+
+            // Disable Next if last image OR if user hasn't selected yes/no for current image
+            nextBtn.disabled = isLast || !hasCurrentLabel();
+        }
+
+        /* ========= الأحداث ========= */
         prevBtn.onclick = () => {
             if (currentIndex > 0) {
                 currentIndex--;
                 updateView();
+                updateNextButtonState();
             }
         };
 
         nextBtn.onclick = () => {
-            if (currentIndex < TOTAL_IMAGES - 1) {
-                currentIndex++;
-                updateView();
-                updateSteps(1);
-            }
+        // Block moving forward until user selects yes/no for the current image
+        if (!hasCurrentLabel()) {
+            saveStatus.textContent = "⚠️ اختاري نعم أو لا أولاً قبل الانتقال للصورة التالية";
+            setTimeout(() => (saveStatus.textContent = ""), 2200);
+            updateNextButtonState();
+            return;
+        }
+
+        if (currentIndex < getTotalImages() - 1) {
+            currentIndex++;
+            updateView();
+            updateSteps(1);
+        }
         };
 
         yesBtn.onclick = () => {
@@ -801,6 +1157,7 @@
             labels[currentIndex] = "yes";
             updateYNButtons();
             updateStats();
+            updateNextButtonState();
             syncCurrentToServer();
             updateSteps(2);
         };
@@ -811,6 +1168,7 @@
             labels[currentIndex] = "no";
             updateYNButtons();
             updateStats();
+            updateNextButtonState();
             syncCurrentToServer();
             updateSteps(2);
         };
@@ -833,9 +1191,45 @@
         };
 
         // بدء العرض
-        updateView();
+        (async () => {
+            try {
+                await loadPairs();
+                const saved = loadSession();
+                if (saved?.reviewerKey && saved?.fullName && saved?.role) {
+                reviewerKey = String(saved.reviewerKey);
+                reviewer = {
+                    key: reviewerKey,
+                    reviewerNumber: reviewerKey,
+                    fullName: saved.fullName,
+                    role: saved.role
+                };
+
+                modal.style.display = "none";
+                assignImagesForReviewerKey(reviewerKey);
+                await loadExistingReviewsForReviewer();
+                return; // important: don't continue default flow
+}
+
+                // Initialize arrays after we know how many pairs exist
+                labels = new Array(getTotalImages()).fill(null); // "yes" / "no" / null
+                notes = new Array(getTotalImages()).fill("");
+
+                // Reset to the first item safely
+                currentIndex = 0;
+                updateView();
+            } catch (e) {
+                console.error(e);
+                // Basic user-facing fallback
+                // Don't render dataset until reviewer chooses a key
+currentIndexSpan.textContent = "0";
+totalCountSpan.textContent = String(allPairs.length);
+                userWarning.textContent = "تعذر تحميل الصور من Google Drive. تأكد من تشغيل السيرفر (/api/pairs).";
+            }
+        })();
+    
+    
     </script>
 
-</body>
 
-</html>
+
+</body></html>

@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "gp-dune",
+  "private_key_id": "20a150a2ee5d733bc189125cb80d2b4e423c8c63",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC+qWwALruynzNF\nfUXOsWvcIRA0hNiQjf49wyUDQTzdyU8qjubcSsSA1c8+UpsE0TIQDRb5DXfMxy9c\nw7kynrB9oaWzLlww8U0QMM4ogs/WhjaJYeo17z9tvU/fmIyzN/dL82nGpdHhnKzT\nBGHhaq/ZKYjL1FDBQ+qmAJ8C3bPYJgTEx7aZ3ZczJqTMXlCxdOgvcVS5DhuWw2BE\nt4rdoa+HpgGwaueXlUjTs/ouohrkprj9bKUzjcFj9mtcywYysNvpeUuTpz39OaJ6\nX9nuDfa49EZWmvrKBgORY8mp8uYpBB4rCMnpIhfDmt+Lq8ymN0/xO/pssVNlA8nh\nPmENfSWTAgMBAAECggEAAMb5s5HSiRALakvwRhSaFHZ8Cu1vC+klnASDePJsou4o\nU6Dr1wJlBQNvdK5rMbH/9WnK6gQAijCrruygq3tTITKmABzUb7dOxvNJUTKgp0a6\ndS/q1QJ0gegvfwFaXXwBFumsnjcx1ldzAD84fkNBk+3j6rTNtCP957mr7EaRbkmj\nkousTe6JOg5pvIdh6vJtiwRSx/gl7I5J1wlMQxwIl8dNvjrPIM1k+VYrDHh/xpvx\n+dittE3FPHFNEJGeVB2GKrf2WDh0+wurysA3FVS3CEiLvqCXUIRYqvQew3E8Ud0j\nUPGUdctBtB/sOrj6l7Ks2E43XmcfYCwVTS4Q4hwx0QKBgQD7/D1sCe7iUWc3e9vy\niANRLO7hbrKNGBuMzOB62kOMSCSzBUc4GeuZKdyxSUId0qQSfqV7znIjTUqSvK5D\n4ZQ9kySbQFvb6Yh+WP6ocX83mcqsrqboXZpQR90J1O6CzmraMPyvc33LUu6OzzkQ\n8DOmAh769spxMasc7CvFdJzg0QKBgQDBsxCVXICFXL4wNHKbz1xb+TcbA9Z38PUP\nrvbgWfYjbZkU/A69wdVWzuo9Q7ZPX0DaHlSbmQjk84BmkHIjMNVw6M/qwqLdrsaJ\ndJOoa1fwyklakW7v+/8/DqPtII5wCN9cfg861wLX+O+was0kJTqPSFPEk51QblC3\nPtJY/jYZIwKBgDvgi2Ph1F75AvLfPruZ8FfYuobc/Bak9N73TBxFQynRds8HYQ4G\nssI5fVSvWMOnaw9uArqxqtOSqTbHGQ3OS6B6F4fAulM+Yg3L7e9u0NEQfWWdNtIe\nc+3BtdeBPo/cpu1kGJdEdU7cTQ2oViIdQdifxmbSP/a327ZKtHf+Js0RAoGAHP3B\nIKncrplH+g0PjlSF/VoarldvtToCY9uLJd8xIPJZdDOZvTsSxFBp7MuCsPSPz1W0\n0ikglKwBbth1zOCVQbYG0JtbJxTusEobg5y1Z9vPCNg1o4OzG2wEiwxRZWFelQhl\nHShrS4n9zgjeNWfBEQsBRq3VYOFyAUtMzncV/8MCgYEA9X9tyH0f/lZ5XwZ5exBk\nTPnCIPgivGC8fNdJMTtzU2+wX6dFSLNqFKcg34TI4c/A5ReNyhOOZxSbxcgkCvRh\nUxnRl+7N8Dg5jGqZ//FkeeYBwkJSw4c7fTZBuCGEASUWWGgguNVqQ3reROXR2cLG\nL42TQ45yIuGl9Awwm9WYefQ=\n-----END PRIVATE KEY-----\n",
+  "client_email": "dataset-access@gp-dune.iam.gserviceaccount.com",
+  "client_id": "111561801571104474994",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/dataset-access%40gp-dune.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
