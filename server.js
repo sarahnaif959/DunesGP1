@@ -304,8 +304,8 @@ app.get("/api/debug", async (_req, res) => {
   }
 });
 
-const server = app.listen(PORT, "127.0.0.1", () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+const server = app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
 });
 server.on("error", (err) => {
   console.error("❌ Listen error:", err);
