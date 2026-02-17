@@ -32,7 +32,12 @@ function initFirebaseAdmin() {
       console.warn("⚠️ Firebase not configured: missing FIREBASE_SERVICE_ACCOUNT_KEY_PATH or FIREBASE_SERVICE_ACCOUNT_JSON");
       return;
     }
-    serviceAccount = JSON.parse(rawJson);
+    try {
+  serviceAccount = JSON.parse(rawJson);
+} catch (e) {
+  console.error("❌ Firebase JSON parse error:", e);
+  throw new Error("Invalid FIREBASE_SERVICE_ACCOUNT_JSON");
+}
   }
 
   admin.initializeApp({
@@ -180,7 +185,12 @@ function getDrive() {
   } else {
     if (!rawJson) throw new Error("Missing GOOGLE_SERVICE_ACCOUNT_KEY_PATH (recommended) or GOOGLE_SERVICE_ACCOUNT_JSON in .env");
     // If you store JSON in env, it MUST be valid JSON (no surrounding quotes issues)
-    creds = JSON.parse(rawJson);
+    try {
+  creds = JSON.parse(rawJson);
+} catch (e) {
+  console.error("❌ Google Drive JSON parse error:", e);
+  throw new Error("Invalid GOOGLE_SERVICE_ACCOUNT_JSON");
+}
   }
 
   const auth = new google.auth.JWT({
