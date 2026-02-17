@@ -649,10 +649,10 @@
         doc,
         setDoc,
         serverTimestamp,
-        runTransaction,
+        // runTransaction,
         collection,
         query,
-        where,
+        // where,
         getDocs,
         getDoc 
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -846,27 +846,18 @@ reviewerBtns.forEach(btn => {
    Collection: locks
    Document: reviewers_<name>   e.g. reviewers_sarah
 */
-async function reserveReviewerOrThrow(key, payload) {
+async function recordReviewerKeyUsage(key, payload) {
   const lockRef = doc(db, "locks", `reviewers_${key}`);
-
-  await runTransaction(db, async (tx) => {
-    const snap = await tx.get(lockRef);
-
-    if (snap.exists() && snap.data()?.taken === true) {
-      throw new Error("TAKEN");
-    }
-
-    tx.set(lockRef, {
-  taken: true,
-  reviewerKey: key,
-  reviewerName: payload.fullName,
-  role: payload.role,
-
-  imageName: "",   
-
-  takenAt: serverTimestamp()
-}, { merge: true });
-  });
+  await setDoc(
+    lockRef,
+    {
+      reviewerKey: String(key),
+      lastUsedBy: payload.fullName,
+      lastUsedRole: payload.role,
+      lastUsedAt: serverTimestamp()
+    },
+    { merge: true }
+  );
 }
 
     /* ====== Start button ====== */
@@ -903,10 +894,12 @@ async function reserveReviewerOrThrow(key, payload) {
         startBtn.disabled = true;
         startBtn.style.opacity = ".6";
         startBtn.style.cursor = "not-allowed";
-
+        
+        
+        // Important: we record the reviewerKey usage but we do NOT block or lock it.🛑
         try {
-            // Reserve the reviewer button in Firestore
-            await reserveReviewerOrThrow(reviewerKey, reviewer);
+            // Record usage only (no lock / no blocking)
+            await recordReviewerKeyUsage(reviewerKey, reviewer);
 
             // Hide modal
             modal.style.display = "none";
@@ -914,19 +907,14 @@ async function reserveReviewerOrThrow(key, payload) {
 
             // Assign images based on reviewerKey
             assignImagesForReviewerKey(reviewerKey);
-await loadExistingReviewsForReviewer();   // 👈 resume from Firestore
+            await loadExistingReviewsForReviewer();   // 👈 resume from Firestore
 
         } catch (e) {
-            if (String(e.message) === "TAKEN") {
-            loginError.textContent = "هذا المقيّم مستخدم حالياً. اختر اسماً آخر.";
-            } else {
             loginError.textContent = "تعذر الحفظ في Firebase. راجع Firestore Rules.";
             console.error(e);
-            }
             // Re-enable start if inputs are ok
             updateStartState();
         }
-        });
 
 
         const firebaseConfig = {
