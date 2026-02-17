@@ -1114,19 +1114,26 @@ async function syncCurrentToServer() {
   const note  = notes[currentIndex] || "";
 
   try {
-    await setDoc(
-      doc(db, "reviews", reviewer.fullName, "images", fileName),
-      {
-        reviewerName: reviewer.fullName,
-        reviewerKey: reviewer.key,
-        fileName: fileName,
-        label: label,
-        note: note,
-        updatedAt: serverTimestamp()
-      },
-      { merge: true }
-    );
-
+   await setDoc(
+  doc(
+    db,
+    "reviews",
+    reviewer.key,
+    "reviewers",
+    reviewer.fullName,
+    "images",
+    fileName
+  ),
+  {
+    reviewerName: reviewer.fullName,
+    reviewerKey: reviewer.key,
+    fileName: fileName,
+    label: label,
+    note: note,
+    updatedAt: serverTimestamp()
+  },
+  { merge: true }
+);
   } catch (err) {
     console.error("Firestore save error:", err);
   }
@@ -1136,7 +1143,16 @@ async function syncCurrentToServer() {
         if (!reviewer?.key) return;
 
         // Load all review docs for this reviewerKey
-        const q = query(collection(db, "reviews", reviewer.fullName, "images"));
+const q = query(
+  collection(
+    db,
+    "reviews",
+    reviewer.key,
+    "reviewers",
+    reviewer.fullName,
+    "images"
+  )
+);
         const snap = await getDocs(q);
 
         // Map fileName -> { label, note }
