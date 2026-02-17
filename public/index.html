@@ -533,7 +533,7 @@
     <div class="page">
         <h1 class="title">هل اللون الظاهر في صورة القناع يحدد حدود الكثيب الهلالي بوضوح وبشكل صحيح أم لا؟  </h1>
         <div class="subtitle">
-            الصورة <span id="current-index">7</span> من <span id="total-count">40</span>
+            الصورة <span id="current-index">500</span> من <span id="total-count">1</span>
         </div>
         <div id="userWarning" style="text-align:center;color:#b91c1c;font-size:13px;margin-bottom:10px"></div>
 
@@ -656,6 +656,26 @@
         getDocs,
         getDoc 
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // ===== Firebase init (MUST be before any db usage) =====
+const firebaseConfig = {
+  apiKey: "AIzaSyBHZZt3nCm5KmpOBsuB7Ho9QoS94BDU-N8",
+  authDomain: "expert-dunes.firebaseapp.com",
+  projectId: "expert-dunes",
+  storageBucket: "expert-dunes.firebasestorage.app",
+  messagingSenderId: "85067583913",
+  appId: "1:85067583913:web:431b6528e269c9181134b8",
+  measurementId: "G-ESEZKT9Z7E"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+import { enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+enableIndexedDbPersistence(db).catch((err) => {
+  console.warn("Offline persistence not enabled:", err?.code || err);
+});
 
 /* ===== Modal elements (MATCH the HTML ids EXACTLY) ===== */
 const modal = document.getElementById("loginModal");
@@ -860,84 +880,70 @@ async function recordReviewerKeyUsage(key, payload) {
   );
 }
 
-    /* ====== Start button ====== */
-        startBtn.addEventListener("click", async () => {
-        const first = (firstNameEl.value || "").trim();
-        const last  = (lastNameEl.value || "").trim();
-        const role  = (geoLevelEl.value || "").trim();
-        const ack   = !!confirmInfoEl.checked;
+/* ====== Start button ====== */
+startBtn.addEventListener("click", async () => {
+  const first = (firstNameEl.value || "").trim();
+  const last  = (lastNameEl.value || "").trim();
+  const role  = (geoLevelEl.value || "").trim();
+  const ack   = !!confirmInfoEl.checked;
 
-        if (!reviewerKey) {
-            loginError.textContent = "رجاءً اختر اسم المقيّم";
-            return;
-        }
-        if (!first || !last) {
-            loginError.textContent = "رجاءً أدخل الاسم الأول واسم العائلة.";
-            return;
-        }
-        if (!role) {
-            loginError.textContent = "رجاءً اختر الصفة (Student/Professor/Bachelor/Master).";
-            return;
-        }
-        if (!ack) {
-            loginError.textContent = "يجب الموافقة على الإقرار.";
-            return;
-        }
+  if (!reviewerKey) {
+    loginError.textContent = "رجاءً اختر رقم المقيّم";
+    return;
+  }
+  if (!first || !last) {
+    loginError.textContent = "رجاءً أدخل الاسم الأول واسم العائلة.";
+    return;
+  }
+  if (!role) {
+    loginError.textContent = "رجاءً اختر الصفة (Student/Professor/Bachelor/Master).";
+    return;
+  }
+  if (!ack) {
+    loginError.textContent = "يجب الموافقة على الإقرار.";
+    return;
+  }
 
-        reviewer = {
-            key: String(reviewerKey),   
-            reviewerNumber: String(reviewerKey),
-            fullName: `${first} ${last}`,
-            role
-        };
+  reviewer = {
+    key: String(reviewerKey),
+    reviewerNumber: String(reviewerKey),
+    fullName: `${first} ${last}`,
+    role
+  };
 
-        startBtn.disabled = true;
-        startBtn.style.opacity = ".6";
-        startBtn.style.cursor = "not-allowed";
-    }).catch((e) => {
-        console.error("Error during start button click", e);
-        loginError.textContent = "حدث خطأ غير متوقع. حاول مرة أخرى.";
-    });
-    
-    try {
-            // Record usage only (no lock / no blocking)
-            await recordReviewerKeyUsage(reviewerKey, reviewer);
+  // disable button while we save
+  startBtn.disabled = true;
+  startBtn.style.opacity = ".6";
+  startBtn.style.cursor = "not-allowed";
 
-            // Hide modal
-            modal.style.display = "none";
-            saveSession();
+  try {
+    // Save “usage metadata” only (NO locking / no blocking)
+    await recordReviewerKeyUsage(reviewerKey, reviewer);
 
-            // Assign images based on reviewerKey
-            assignImagesForReviewerKey(reviewerKey);
-            await loadExistingReviewsForReviewer();   // 👈 resume from Firestore
+    // hide modal + persist session
+    modal.style.display = "none";
+    saveSession();
 
-        } catch (e) {
-            loginError.textContent = "تعذر الحفظ في Firebase. راجع Firestore Rules.";
-            console.error(e);
-            // Re-enable start if inputs are ok
-            updateStartState();
-        }
+    // ensure pairs[] matches the chosen key
+    assignImagesForReviewerKey(reviewerKey, { skipRender: true });
 
+    // resume progress from Firestore
+    isBootstrapping = true;
+    await loadExistingReviewsForReviewer();
+    isBootstrapping = false;
 
-        const firebaseConfig = {
-        apiKey: "AIzaSyBHZZt3nCm5KmpOBsuB7Ho9QoS94BDU-N8",
-        authDomain: "expert-dunes.firebaseapp.com",
-        projectId: "expert-dunes",
-        storageBucket: "expert-dunes.firebasestorage.app",
-        messagingSenderId: "85067583913",
-        appId: "1:85067583913:web:431b6528e269c9181134b8",
-        measurementId: "G-ESEZKT9Z7E"
-        };
+    updateView();
+    updateNextButtonState();
+  } catch (e) {
+    console.error("Error during start button click", e);
+    loginError.textContent = "تعذر الحفظ في Firebase. راجع Firestore Rules.";
 
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        import { enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-enableIndexedDbPersistence(db).catch((err) => {
-  console.warn("Offline persistence not enabled:", err?.code || err);
+    // re-enable start if inputs are ok
+    startBtn.disabled = false;
+    updateStartState();
+  }
 });
+
 
 
 const API_BASE =
