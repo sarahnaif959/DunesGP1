@@ -671,6 +671,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+function safeDocId(s) {
+  return String(s).replace(/[\/#?[\]]/g, "_");
+}
+
+function lockDocRefForReviewer(key, payload) {
+  const reviewerId = safeDocId(`${payload?.fullName || "unknown"}_${String(key)}`);
+  return doc(db, "locks", `reviewers_${String(key)}`, "reviewers", reviewerId);
+}
+
 import { enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 enableIndexedDbPersistence(db).catch((err) => {
@@ -862,24 +871,24 @@ reviewerBtns.forEach(btn => {
   });
 });
 
-/* ====== Firestore lock (transaction) ======
-   Collection: locks
-   Document: reviewers_<name>   e.g. reviewers_sarah
-*/
+// ====== Firestore lock (transaction) ======
 async function recordReviewerKeyUsage(key, payload) {
-  const lockRef = doc(db, "locks", `reviewers_${key}`);
+  // Per-reviewer doc (so multiple people can share same key without overwriting)
+  const ref = lockDocRefForReviewer(key, payload);
+
   await setDoc(
-    lockRef,
+    ref,
     {
       reviewerKey: String(key),
-      lastUsedBy: payload.fullName,
-      lastUsedRole: payload.role,
-      lastUsedAt: serverTimestamp()
+      reviewerName: payload.fullName,
+      role: payload.role,
+      createdAt: serverTimestamp(),
+      lastUsedAt: serverTimestamp(),
+      multiUser: true
     },
     { merge: true }
   );
 }
-
 /* ====== Start button ====== */
 startBtn.addEventListener("click", async () => {
   const first = (firstNameEl.value || "").trim();
@@ -1189,16 +1198,22 @@ function assignImagesForReviewerKey(key, opts = {}) {
 
         // A) Firestore lock
         try {
-            const lockRef = doc(db, "locks", `reviewers_${reviewer.key}`);
-            const lockSnap = await getDoc(lockRef);
-            const lastName = lockSnap.exists() ? String(lockSnap.data()?.lastImageName || "") : "";
-            if (lastName) {
-            const idx = pairs.findIndex(p => String(p?.name || "") === lastName);
-            if (idx >= 0) resumeIndex = idx;
-            }
-        } catch (e) {
-            console.warn("Could not read lastImageName", e);
-        }
+  const lockRef = lockDocRefForReviewer(reviewer.key, reviewer);
+  const lockSnap = await getDoc(lockRef);
+  const data = lockSnap.exists() ? (lockSnap.data() || {}) : {};
+
+  const lastIdx = typeof data.lastIndex === "number" ? data.lastIndex : null;
+  const lastName = String(data.lastImageName || "");
+
+  if (lastIdx != null && lastIdx >= 0) {
+    resumeIndex = Math.min(Math.max(lastIdx, 0), Math.max(pairs.length - 1, 0));
+  } else if (lastName) {
+    const idx = pairs.findIndex(p => String(p?.name || "") === lastName);
+    if (idx >= 0) resumeIndex = idx;
+  }
+} catch (e) {
+  console.warn("Could not read per-reviewer progress", e);
+}
 
         // B) localStorage
         if (resumeIndex == null) {
@@ -1274,8 +1289,16 @@ function assignImagesForReviewerKey(key, opts = {}) {
         }
 
             if (!isBootstrapping && pair && reviewer?.key) {
-            const lockRef = doc(db, "locks", `reviewers_${reviewer.key}`);
-            setDoc(lockRef, { lastImageName: pair.name }, { merge: true });
+            const lockRef = lockDocRefForReviewer(reviewer.key, reviewer);
+                setDoc(
+                lockRef,
+                {
+                    lastImageName: pair.name,
+                    lastIndex: currentIndex,
+                    lastUsedAt: serverTimestamp()
+                },
+                { merge: true }
+                );
             saveProgressIndex();
             }
 
