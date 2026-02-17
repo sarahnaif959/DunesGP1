@@ -894,10 +894,12 @@ async function recordReviewerKeyUsage(key, payload) {
         startBtn.disabled = true;
         startBtn.style.opacity = ".6";
         startBtn.style.cursor = "not-allowed";
-        
-        
-        // Important: we record the reviewerKey usage but we do NOT block or lock it.🛑
-        try {
+    }).catch((e) => {
+        console.error("Error during start button click", e);
+        loginError.textContent = "حدث خطأ غير متوقع. حاول مرة أخرى.";
+    });
+    
+    try {
             // Record usage only (no lock / no blocking)
             await recordReviewerKeyUsage(reviewerKey, reviewer);
 
