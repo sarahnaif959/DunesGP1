@@ -1103,7 +1103,7 @@ function assignImagesForReviewerKey(key, opts = {}) {
   return String(s).replace(/[\/#?[\]]/g, "_");
 }
 
-async function syncCurrentToServer() {
+    async function syncCurrentToServer() {
   if (!reviewer?.fullName) return;
 
   const pair = getPair(currentIndex);
@@ -1113,27 +1113,29 @@ async function syncCurrentToServer() {
   const label = labels[currentIndex] || "";
   const note  = notes[currentIndex] || "";
 
+  const userId = `${reviewer.fullName}_${reviewer.key}`;
+
   try {
-   await setDoc(
-  doc(
-    db,
-    "reviews",
-    reviewer.key,
-    "reviewers",
-    reviewer.fullName,
-    "images",
-    fileName
-  ),
-  {
-    reviewerName: reviewer.fullName,
-    reviewerKey: reviewer.key,
-    fileName: fileName,
-    label: label,
-    note: note,
-    updatedAt: serverTimestamp()
-  },
-  { merge: true }
-);
+    await setDoc(
+      doc(
+        db,
+        "reviews",
+        reviewer.key,
+        "reviewers",
+        userId,
+        "images",
+        fileName
+      ),
+      {
+        reviewerName: reviewer.fullName,
+        reviewerKey: reviewer.key,
+        fileName: fileName,
+        label: label,
+        note: note,
+        updatedAt: serverTimestamp()
+      },
+      { merge: true }
+    );
   } catch (err) {
     console.error("Firestore save error:", err);
   }
@@ -1143,13 +1145,15 @@ async function syncCurrentToServer() {
         if (!reviewer?.key) return;
 
         // Load all review docs for this reviewerKey
-const q = query(
+        const userId = `${reviewer.fullName}_${reviewer.key}`;
+
+        const q = query(
   collection(
     db,
     "reviews",
     reviewer.key,
     "reviewers",
-    reviewer.fullName,
+    userId,
     "images"
   )
 );
