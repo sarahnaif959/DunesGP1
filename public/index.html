@@ -917,31 +917,29 @@ startBtn.addEventListener("click", async () => {
   startBtn.style.cursor = "not-allowed";
 
   try {
-    // Save “usage metadata” only (NO locking / no blocking)
-    await recordReviewerKeyUsage(reviewerKey, reviewer);
 
-    // hide modal + persist session
-    modal.style.display = "none";
-    saveSession();
+  // Save usage metadata
+  await recordReviewerKeyUsage(reviewerKey, reviewer);
 
-    // ensure pairs[] matches the chosen key
-    assignImagesForReviewerKey(reviewerKey, { skipRender: true });
+  modal.style.display = "none";
+  saveSession();
 
-    // resume progress from Firestore
-    isBootstrapping = true;
-    await loadExistingReviewsForReviewer();
-    isBootstrapping = false;
+  assignImagesForReviewerKey(reviewerKey, { skipRender: true });
 
-    updateView();
-    updateNextButtonState();
-  } catch (e) {
-    console.error("Error during start button click", e);
-    loginError.textContent = "تعذر الحفظ في Firebase. راجع Firestore Rules.";
+  isBootstrapping = true;
+  await loadExistingReviewsForReviewer();
+  isBootstrapping = false;
 
-    // re-enable start if inputs are ok
-    startBtn.disabled = false;
-    updateStartState();
-  }
+  updateView();
+  updateNextButtonState();
+
+} catch (e) {
+  console.error("Error during start button click", e);
+  loginError.textContent = "تعذر الحفظ في Firebase";
+
+  startBtn.disabled = false;
+  updateStartState();
+}
 });
 
 
