@@ -926,18 +926,6 @@ await loadExistingReviewsForReviewer();   // 👈 resume from Firestore
         }
         });
 
-
-        const firebaseConfig = {
-        apiKey: "AIzaSyBHZZt3nCm5KmpOBsuB7Ho9QoS94BDU-N8",
-        authDomain: "expert-dunes.firebaseapp.com",
-        projectId: "expert-dunes",
-        storageBucket: "expert-dunes.firebasestorage.app",
-        messagingSenderId: "85067583913",
-        appId: "1:85067583913:web:431b6528e269c9181134b8",
-        measurementId: "G-ESEZKT9Z7E"
-        };
-
-        const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         import { enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
