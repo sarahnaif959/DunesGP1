@@ -676,7 +676,11 @@ function safeDocId(s) {
 }
 
 function lockDocRefForReviewer(key, payload) {
-  const reviewerId = safeDocId(`${payload?.fullName || "unknown"}_${String(key)}`);
+
+  const reviewerId = safeDocId(
+    `${payload?.fullName || "unknown"}_${String(key)}`
+  );
+
   return doc(db, "locks", `reviewers_${String(key)}`, "reviewers", reviewerId);
 }
 
@@ -1122,8 +1126,7 @@ function assignImagesForReviewerKey(key, opts = {}) {
   const label = labels[currentIndex] || "";
   const note  = notes[currentIndex] || "";
 
-  const userId = `${reviewer.fullName}_${reviewer.key}`;
-
+const userId = `${reviewer.fullName}_${reviewer.key}`;
   try {
     await setDoc(
       doc(
@@ -1154,9 +1157,8 @@ function assignImagesForReviewerKey(key, opts = {}) {
         if (!reviewer?.key) return;
 
         // Load all review docs for this reviewerKey
-        const userId = `${reviewer.fullName}_${reviewer.key}`;
-
-        const q = query(
+const userId = `${reviewer.fullName}_${reviewer.key}`;        
+const q = query(
   collection(
     db,
     "reviews",
