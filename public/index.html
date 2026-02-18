@@ -681,9 +681,15 @@ function lockDocRefForReviewer(key, payload) {
     `${payload?.fullName || "unknown"}_${String(key)}`
   );
 
-  return doc(db, "locks", `reviewers_${String(key)}`, "reviewers", reviewerId);
+  // IMPORTANT: always use subcollection reviewers
+  return doc(
+    db,
+    "locks",
+    `reviewers_${String(key)}`,
+    "reviewers",
+    reviewerId
+  );
 }
-
 import { enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 enableIndexedDbPersistence(db).catch((err) => {
@@ -877,8 +883,19 @@ reviewerBtns.forEach(btn => {
 
 // ====== Firestore lock (transaction) ======
 async function recordReviewerKeyUsage(key, payload) {
-  // Per-reviewer doc (so multiple people can share same key without overwriting)
-  const ref = lockDocRefForReviewer(key, payload);
+
+  const reviewerId = safeDocId(
+    `${payload?.fullName}_${String(key)}`
+  );
+
+  // ALWAYS write to subcollection ONLY
+  const ref = doc(
+    db,
+    "locks",
+    `reviewers_${String(key)}`,
+    "reviewers",
+    reviewerId
+  );
 
   await setDoc(
     ref,
@@ -888,7 +905,7 @@ async function recordReviewerKeyUsage(key, payload) {
       role: payload.role,
       createdAt: serverTimestamp(),
       lastUsedAt: serverTimestamp(),
-      multiUser: true
+      newSystem: true   // marks new separate system
     },
     { merge: true }
   );
