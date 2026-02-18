@@ -658,17 +658,19 @@
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         // ===== Firebase init (MUST be before any db usage) =====
-const firebaseConfig = {
-  apiKey: import.meta.env.FIREBASE_API_KEY,
-  authDomain: import.meta.env.FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.FIREBASE_APP_ID
-};
+        const firebaseConfig = {
+        apiKey: "AIzaSyBHZZt3nCm5KmpOBsuB7Ho9QoS94BDU-N8",
+        authDomain: "expert-dunes.firebaseapp.com",
+        projectId: "expert-dunes",
+        storageBucket: "expert-dunes.firebasestorage.app",
+        messagingSenderId: "85067583913",
+        appId: "1:85067583913:web:431b6528e269c9181134b8",
+        measurementId: "G-ESEZKT9Z7E"
+        };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
 function safeDocId(s) {
   return String(s).replace(/[\/#?[\]]/g, "_");
